@@ -1,4 +1,4 @@
-<template>
+<!-- <template>
   <div class="app-container home">
     <el-row :gutter="20">
       <el-col :sm="24" :lg="12" style="padding-left: 20px">
@@ -1205,4 +1205,4 @@ export default {
   }
 }
 </style>
-
+ -->

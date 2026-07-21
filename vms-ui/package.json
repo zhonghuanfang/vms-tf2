@@ -1,8 +1,8 @@
 {
   "name": "vms",
   "version": "3.9.2",
-  "description": "若依管理系统",
-  "author": "若依",
+  "description": "凭证管理系统",
+  "author": "vms",
   "license": "MIT",
   "scripts": {
     "dev": "vue-cli-service serve",

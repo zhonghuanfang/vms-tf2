@@ -27,8 +27,8 @@ public class DataSourceAspect
 {
     protected Logger logger = LoggerFactory.getLogger(getClass());
 
-    @Pointcut("@annotation(com.vms.common.annotation.DataSource)"
-            + "|| @within(com.vms.common.annotation.DataSource)")
+    @Pointcut("@annotation(cn.tf.vms.common.annotation.DataSource)"
+            + "|| @within(cn.tf.vms.common.annotation.DataSource)")
     public void dsPointCut()
     {
 

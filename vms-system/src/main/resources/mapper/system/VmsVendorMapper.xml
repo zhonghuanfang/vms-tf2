@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.tf.vms.system.mapper.VmsVendorMapper">
+
+    <resultMap type="VmsVendor" id="VmsVendorResult">
+        <result property="oid"    column="oid"    />
+        <result property="vendorId"    column="vendor_id"    />
+        <result property="vendorName"    column="vendor_name"    />
+        <result property="vendorAddress"    column="vendor_address"    />
+        <result property="contactName"    column="contact_name"    />
+        <result property="contactPhone"    column="contact_phone"    />
+        <result property="contactIdCard"    column="contact_id_card"    />
+        <result property="bankAccount"    column="bank_account"    />
+        <result property="bankName"    column="bank_name"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="remark"    column="remark"    />
+        <result property="status"    column="status"    />
+    </resultMap>
+
+    <sql id="selectVmsVendorVo">
+        select oid, vendor_id, vendor_name, vendor_address, contact_name, contact_phone, contact_id_card, bank_account, bank_name, create_by, create_time, update_by, update_time, remark, status from vms_vendor
+    </sql>
+
+    <select id="selectVmsVendorList" parameterType="VmsVendor" resultMap="VmsVendorResult">
+        <include refid="selectVmsVendorVo"/>
+        <where>
+            <if test="vendorId != null  and vendorId != ''"> and vendor_id = #{vendorId}</if>
+            <if test="vendorName != null  and vendorName != ''"> and vendor_name like concat('%', #{vendorName}, '%')</if>
+            <if test="vendorAddress != null  and vendorAddress != ''"> and vendor_address = #{vendorAddress}</if>
+            <if test="contactName != null  and contactName != ''"> and contact_name like concat('%', #{contactName}, '%')</if>
+            <if test="contactPhone != null  and contactPhone != ''"> and contact_phone = #{contactPhone}</if>
+            <if test="contactIdCard != null  and contactIdCard != ''"> and contact_id_card = #{contactIdCard}</if>
+            <if test="bankAccount != null  and bankAccount != ''"> and bank_account = #{bankAccount}</if>
+            <if test="bankName != null  and bankName != ''"> and bank_name like concat('%', #{bankName}, '%')</if>
+            <if test="status != null  and status != ''"> and status = #{status}</if>
+        </where>
+    </select>
+
+    <select id="selectVmsVendorByOid" parameterType="Long" resultMap="VmsVendorResult">
+        <include refid="selectVmsVendorVo"/>
+        where oid = #{oid}
+    </select>
+
+    <insert id="insertVmsVendor" parameterType="VmsVendor" useGeneratedKeys="true" keyProperty="oid">
+        insert into vms_vendor
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="vendorId != null and vendorId != ''">vendor_id,</if>
+            <if test="vendorName != null and vendorName != ''">vendor_name,</if>
+            <if test="vendorAddress != null">vendor_address,</if>
+            <if test="contactName != null">contact_name,</if>
+            <if test="contactPhone != null">contact_phone,</if>
+            <if test="contactIdCard != null">contact_id_card,</if>
+            <if test="bankAccount != null">bank_account,</if>
+            <if test="bankName != null">bank_name,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null">remark,</if>
+            <if test="status != null">status,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="vendorId != null and vendorId != ''">#{vendorId},</if>
+            <if test="vendorName != null and vendorName != ''">#{vendorName},</if>
+            <if test="vendorAddress != null">#{vendorAddress},</if>
+            <if test="contactName != null">#{contactName},</if>
+            <if test="contactPhone != null">#{contactPhone},</if>
+            <if test="contactIdCard != null">#{contactIdCard},</if>
+            <if test="bankAccount != null">#{bankAccount},</if>
+            <if test="bankName != null">#{bankName},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null">#{remark},</if>
+            <if test="status != null">#{status},</if>
+        </trim>
+    </insert>
+
+    <update id="updateVmsVendor" parameterType="VmsVendor">
+        update vms_vendor
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="vendorId != null and vendorId != ''">vendor_id = #{vendorId},</if>
+            <if test="vendorName != null and vendorName != ''">vendor_name = #{vendorName},</if>
+            <if test="vendorAddress != null">vendor_address = #{vendorAddress},</if>
+            <if test="contactName != null">contact_name = #{contactName},</if>
+            <if test="contactPhone != null">contact_phone = #{contactPhone},</if>
+            <if test="contactIdCard != null">contact_id_card = #{contactIdCard},</if>
+            <if test="bankAccount != null">bank_account = #{bankAccount},</if>
+            <if test="bankName != null">bank_name = #{bankName},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            <if test="status != null">status = #{status},</if>
+        </trim>
+        where oid = #{oid}
+    </update>
+
+    <delete id="deleteVmsVendorByOid" parameterType="Long">
+        delete from vms_vendor where oid = #{oid}
+    </delete>
+
+    <delete id="deleteVmsVendorByOids" parameterType="String">
+        delete from vms_vendor where oid in
+        <foreach item="oid" collection="array" open="(" separator="," close=")">
+            #{oid}
+        </foreach>
+    </delete>
+</mapper>

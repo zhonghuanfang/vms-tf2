@@ -10,7 +10,7 @@
 
     <name>vms</name>
     <url>http://www.vms.vip</url>
-    <description>若依管理系统</description>
+    <description>凭证管理系统</description>
     
     <properties>
         <vms.version>3.9.2</vms.version>

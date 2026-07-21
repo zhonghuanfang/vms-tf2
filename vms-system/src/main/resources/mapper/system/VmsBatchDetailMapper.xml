@@ -96,7 +96,6 @@
         delete from vms_batch_detail where oid in
         <foreach item="oid" collection="array" open="(" separator="," close=")">#{oid}</foreach>
     </delete>
-</mapper>
 
     <select id="selectBranchSummary" resultType="cn.tf.vms.system.domain.VmsBatchSummaryVo">
         select d.template_oid as templateOid, t.category, t.template_name as templateName,
@@ -130,3 +129,4 @@
         </where>
         group by d.template_oid, t.category, t.template_name, t.template_code, v.vendor_name, t.spec, t.price, d.branch_org_id
     </select>
+</mapper>
