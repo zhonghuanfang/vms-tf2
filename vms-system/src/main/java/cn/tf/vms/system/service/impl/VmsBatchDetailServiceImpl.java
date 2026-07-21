@@ -25,4 +25,6 @@ public class VmsBatchDetailServiceImpl implements IVmsBatchDetailService
         else { return vmsBatchDetailMapper.selectHeadSummary(batchNo, status); }
     }
     @Override public int deleteVmsBatchDetailByOid(Long oid) { return vmsBatchDetailMapper.deleteVmsBatchDetailByOid(oid); }
+    @Override public int updateDetailWithVersionCheck(VmsBatchDetail vmsBatchDetail) { vmsBatchDetail.setUpdateTime(DateUtils.getNowDate()); return vmsBatchDetailMapper.updateDetailWithVersionCheck(vmsBatchDetail); }
+    @Override public int deleteDetailWithVersionCheck(VmsBatchDetail vmsBatchDetail) { return vmsBatchDetailMapper.deleteDetailWithVersionCheck(vmsBatchDetail); }
 }

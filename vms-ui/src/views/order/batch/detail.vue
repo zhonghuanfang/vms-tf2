@@ -107,7 +107,7 @@
 </template>
 
 <script>
-import { listDetail, getDetail, addDetail, updateDetail, delDetail, rejectDetail } from "@/api/order/batch"
+import { listDetail, getDetail, addDetail, updateDetail, delDetail, rejectDetail, getOrgStatusInfo } from "@/api/order/batch"
 import { getInfo } from "@/api/login"
 import { listTemplate } from "@/api/system/template"
 
@@ -125,6 +125,7 @@ export default {
       multiple: true,
       title: "",
       open: false,
+      orgVersion: null,
       queryParams: {
         pageNum: 1,
         pageSize: 10,
@@ -157,6 +158,7 @@ export default {
   created() {
     this.getList()
     this.loadTemplates()
+    this.loadOrgStatusInfo()
   },
   methods: {
     getList() {
@@ -165,6 +167,13 @@ export default {
         this.detailList = response.rows
         this.total = response.total
         this.loading = false
+      })
+    },
+    loadOrgStatusInfo() {
+      getOrgStatusInfo(this.batchNo).then(response => {
+        if (response.data) {
+          this.orgVersion = response.data.version
+        }
       })
     },
     loadTemplates() {
@@ -240,17 +249,21 @@ export default {
     submitForm() {
       this.$refs["form"].validate(valid => {
         if (valid) {
+          // 携带机构状态版本号
+          const data = { ...this.form, orgVersion: this.orgVersion }
           if (this.form.oid != null) {
-            updateDetail(this.form).then(() => {
+            updateDetail(data).then(() => {
               this.$modal.msgSuccess("修改成功")
               this.open = false
               this.getList()
+              this.loadOrgStatusInfo()
             })
           } else {
-            addDetail(this.form).then(() => {
+            addDetail(data).then(() => {
               this.$modal.msgSuccess("新增成功")
               this.open = false
               this.getList()
+              this.loadOrgStatusInfo()
             })
           }
         }
@@ -258,8 +271,8 @@ export default {
     },
     handleDelete(row) {
       const oids = row.oid || this.ids
-      this.$modal.confirm('确认删除所选明细？').then(() => delDetail(oids))
-        .then(() => { this.getList(); this.$modal.msgSuccess("删除成功") })
+      this.$modal.confirm('确认删除所选明细？').then(() => delDetail(oids, this.orgVersion))
+        .then(() => { this.getList(); this.loadOrgStatusInfo(); this.$modal.msgSuccess("删除成功") })
         .catch(() => {})
     },
    showOperateBtn() {
@@ -269,10 +282,11 @@ export default {
     },
     handleReject(row) {
       this.$modal.confirm('确认退回该明细？').then(() => {
-        return rejectDetail({ oid: row.oid })
+        return rejectDetail({ oid: row.oid, orgVersion: this.orgVersion })
       }).then(() => {
         this.$modal.msgSuccess("退回成功")
         this.getList()
+        this.loadOrgStatusInfo()
       }).catch(() => {})
     },
    goBack() {

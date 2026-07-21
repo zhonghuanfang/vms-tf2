@@ -18,7 +18,7 @@ public class VmsOrderConstants
 
     public static final String DEPT_LEVEL_HEAD = "1";
     public static final String DEPT_LEVEL_BRANCH = "2";
-    public static final String DEPT_LEVEL_SUBBRANCH = "3";
+    public static final String DEPT_LEVEL_SUBBRANCH = "4";
 
     public static final String ACTION_LOCK = "LOCK";
     public static final String ACTION_UNLOCK = "UNLOCK";

@@ -51,6 +51,16 @@
             <if test="version != null">version = #{version},</if>
         </trim> where oid = #{oid}
     </update>
+    <!-- 带乐观锁的状态更新：仅当version匹配时才更新，同时version自增 -->
+    <update id="updateOrgStatusWithVersionCheck" parameterType="VmsBatchOrgStatus">
+        update vms_batch_org_status
+        set detail_status = #{detailStatus},
+            version = version + 1,
+            update_time = sysdate()
+        where batch_no = #{batchNo}
+          and org_id = #{orgId}
+          and version = #{version}
+    </update>
     <delete id="deleteVmsBatchOrgStatusByOid" parameterType="Long">delete from vms_batch_org_status where oid = #{oid}</delete>
     <delete id="deleteVmsBatchOrgStatusByOids" parameterType="String">
         delete from vms_batch_org_status where oid in

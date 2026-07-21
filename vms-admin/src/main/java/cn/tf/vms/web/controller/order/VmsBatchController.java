@@ -13,6 +13,7 @@ import cn.tf.vms.common.core.page.TableDataInfo;
 import cn.tf.vms.common.enums.BusinessType;
 import cn.tf.vms.common.utils.SecurityUtils;
 import cn.tf.vms.common.utils.StringUtils;
+import cn.tf.vms.common.constant.VmsOrderConstants;
 import cn.tf.vms.system.domain.VmsBatch;
 import cn.tf.vms.system.domain.VmsBatchDetail;
 import cn.tf.vms.system.domain.VmsBatchOrderSegment;
@@ -265,12 +266,139 @@ public class VmsBatchController extends BaseController {
         }
     }
 
+    /**
+     * 分行锁定：将批次机构状态从"待分行管理员汇总"(10)或"分行复核员退回"(13)改为"分行管理员汇总处理中"(11)
+     * 使用乐观锁防止分行和支行同时操作同一批次
+     */
+    @PreAuthorize("@ss.hasPermi('order:batch:lock')")
+    @Log(title = "分行批次锁定", businessType = BusinessType.UPDATE)
+    @PutMapping({"/branch/lock"})
+    public AjaxResult branchLock(@RequestBody VmsBatchOrgStatus param) {
+        return doBranchStatusChange(param, new String[]{"10", "13"}, "11", "BRANCH_LOCK", "分行锁定批次");
+    }
+
+    /**
+     * 分行解锁：将批次机构状态从"分行管理员汇总处理中"(11)改为"待分行管理员汇总"(10)
+     */
+    @PreAuthorize("@ss.hasPermi('order:batch:unlock')")
+    @Log(title = "分行批次解锁", businessType = BusinessType.UPDATE)
+    @PutMapping({"/branch/unlock"})
+    public AjaxResult branchUnlock(@RequestBody VmsBatchOrgStatus param) {
+        return doBranchStatusChange(param, new String[]{"11"}, "10", "BRANCH_UNLOCK", "分行解锁批次");
+    }
+
+    /**
+     * 分行提交审核：将批次机构状态从"分行管理员汇总处理中"(11)改为"分行复核员审核中"(12)
+     * 预留对接流程平台
+     */
+    @PreAuthorize("@ss.hasPermi('order:batch:submit')")
+    @Log(title = "分行批次提交审核", businessType = BusinessType.UPDATE)
+    @PutMapping({"/branch/submitReview"})
+    public AjaxResult branchSubmitReview(@RequestBody VmsBatchOrgStatus param) {
+        return doBranchStatusChange(param, new String[]{"11"}, "12", "BRANCH_SUBMIT_REVIEW", "分行提交审核");
+    }
+
+    /**
+     * 分行状态变更通用方法：校验权限、校验前置状态、乐观锁更新、记录日志
+     *
+     * @param param            前端传入 batchNo + version
+     * @param allowedStatuses  允许的前置状态数组
+     * @param targetStatus     目标状态
+     * @param actionType       日志操作类型
+     * @param actionDesc       日志操作描述
+     */
+    private AjaxResult doBranchStatusChange(VmsBatchOrgStatus param, String[] allowedStatuses, String targetStatus, String actionType, String actionDesc) {
+        if (StringUtils.isEmpty(param.getBatchNo())) {
+            return this.error("批次号不能为空");
+        }
+        if (param.getVersion() == null) {
+            return this.error("版本号不能为空");
+        }
+        // 获取当前用户分行机构号
+        SysDept userDept = null;
+        Long deptId = SecurityUtils.getLoginUser().getUser().getDeptId();
+        if (deptId != null) {
+            userDept = this.sysDeptService.selectDeptById(deptId);
+        }
+        if (userDept == null || !VmsOrderConstants.DEPT_LEVEL_BRANCH.equals(userDept.getDeptLevel())) {
+            return this.error("仅分行管理员可操作");
+        }
+        String orgId = userDept.getDeptCode();
+        if (StringUtils.isEmpty(orgId)) {
+            return this.error("当前分行机构号为空");
+        }
+        // 查询当前机构状态记录
+        VmsBatchOrgStatus query = new VmsBatchOrgStatus();
+        query.setBatchNo(param.getBatchNo());
+        query.setOrgId(orgId);
+        List<VmsBatchOrgStatus> orgStatusList = this.vmsBatchOrgStatusService.selectVmsBatchOrgStatusList(query);
+        if (orgStatusList.isEmpty()) {
+            return this.error("未找到该分行的批次机构状态记录");
+        }
+        VmsBatchOrgStatus orgStatus = orgStatusList.get(0);
+        // 校验前置状态
+        boolean statusAllowed = false;
+        for (String allowed : allowedStatuses) {
+            if (allowed.equals(orgStatus.getDetailStatus())) {
+                statusAllowed = true;
+                break;
+            }
+        }
+        if (!statusAllowed) {
+            return this.error("当前批次机构状态不允许此操作");
+        }
+        // 乐观锁更新
+        orgStatus.setDetailStatus(targetStatus);
+        orgStatus.setVersion(param.getVersion());
+        int rows = this.vmsBatchOrgStatusService.updateOrgStatusWithVersionCheck(orgStatus);
+        if (rows == 0) {
+            return this.error("操作失败，数据已被修改，请刷新后重试");
+        }
+        // 记录日志
+        String username = SecurityUtils.getUsername();
+        VmsBusinessLog log = new VmsBusinessLog();
+        log.setBatchNo(param.getBatchNo());
+        log.setActionType(actionType);
+        log.setActionDesc(actionDesc);
+        log.setOperatorId(username);
+        log.setOperatorName(username);
+        log.setOperatorOrgId(orgId);
+        this.vmsBusinessLogService.insertVmsBusinessLog(log);
+        // TODO: 提交审核时对接流程平台，发送安逸通知给分行复核员
+        return this.success();
+    }
+
     @PreAuthorize("@ss.hasPermi('order:detail:list')")
     @GetMapping({"/detail/list"})
     public TableDataInfo detailList(VmsBatchDetail vmsBatchDetail) {
         this.startPage();
         List<VmsBatchDetail> list = this.vmsBatchDetailService.selectVmsBatchDetailList(vmsBatchDetail);
         return this.getDataTable(list);
+    }
+
+    /**
+     * 获取当前用户在指定批次下的机构状态信息（含乐观锁版本号）
+     */
+    @PreAuthorize("@ss.hasPermi('order:detail:list')")
+    @GetMapping({"/detail/orgStatusInfo"})
+    public AjaxResult getOrgStatusInfo(@RequestParam String batchNo) {
+        Long deptId = SecurityUtils.getLoginUser().getUser().getDeptId();
+        SysDept userDept = deptId != null ? this.sysDeptService.selectDeptById(deptId) : null;
+        if (userDept == null || StringUtils.isEmpty(userDept.getDeptCode())) {
+            return this.error("当前用户机构信息为空");
+        }
+        VmsBatchOrgStatus query = new VmsBatchOrgStatus();
+        query.setBatchNo(batchNo);
+        query.setOrgId(userDept.getDeptCode());
+        List<VmsBatchOrgStatus> list = this.vmsBatchOrgStatusService.selectVmsBatchOrgStatusList(query);
+        if (list.isEmpty()) {
+            return this.success();
+        }
+        VmsBatchOrgStatus orgStatus = list.get(0);
+        AjaxResult result = this.success();
+        result.put("detailStatus", orgStatus.getDetailStatus());
+        result.put("version", orgStatus.getVersion());
+        return result;
     }
 
     @PreAuthorize("@ss.hasPermi('order:detail:query')")
@@ -290,7 +418,7 @@ public class VmsBatchController extends BaseController {
             return this.error("支行号不能为空");
         } else {
             this.fillBranchAndHeadOrg(vmsBatchDetail);
-            AjaxResult checkResult = this.checkBatchDetailOperateStatus(vmsBatchDetail.getBatchNo(), vmsBatchDetail.getBranchOrgId(), vmsBatchDetail.getSubbranchOrgId());
+            AjaxResult checkResult = this.checkBatchDetailOperateStatus(vmsBatchDetail.getBatchNo(), vmsBatchDetail.getBranchOrgId(), vmsBatchDetail.getSubbranchOrgId(), vmsBatchDetail.getOrgVersion());
             if (checkResult != null) {
                 return checkResult;
             } else {
@@ -308,8 +436,16 @@ public class VmsBatchController extends BaseController {
     )
     @PutMapping({"/detail"})
     public AjaxResult editDetail(@RequestBody VmsBatchDetail vmsBatchDetail) {
-        AjaxResult checkResult = this.checkBatchDetailOperateStatus(vmsBatchDetail.getBatchNo(), vmsBatchDetail.getBranchOrgId(), vmsBatchDetail.getSubbranchOrgId());
-        return checkResult != null ? checkResult : this.toAjax(this.vmsBatchDetailService.updateVmsBatchDetail(vmsBatchDetail));
+        AjaxResult checkResult = this.checkBatchDetailOperateStatus(vmsBatchDetail.getBatchNo(), vmsBatchDetail.getBranchOrgId(), vmsBatchDetail.getSubbranchOrgId(), vmsBatchDetail.getOrgVersion());
+        if (checkResult != null) {
+            return checkResult;
+        }
+        // 乐观锁更新明细
+        int rows = this.vmsBatchDetailService.updateDetailWithVersionCheck(vmsBatchDetail);
+        if (rows == 0) {
+            return this.error("操作失败，数据已被修改，请刷新后重试");
+        }
+        return this.success();
     }
 
     @PreAuthorize("@ss.hasPermi('order:detail:reject')")
@@ -322,10 +458,19 @@ public class VmsBatchController extends BaseController {
         VmsBatchDetail detail = this.vmsBatchDetailService.selectVmsBatchDetailByOid(vmsBatchDetail.getOid());
         if (detail == null) {
             return this.error("明细不存在");
-        } else {
-            detail.setDetailStatus("01");
-            return this.toAjax(this.vmsBatchDetailService.updateVmsBatchDetail(detail));
         }
+        // 校验机构状态版本（分行退回时也需要确认批次未被锁定）
+        AjaxResult checkResult = this.checkBatchDetailOperateStatus(detail.getBatchNo(), detail.getBranchOrgId(), detail.getSubbranchOrgId(), vmsBatchDetail.getOrgVersion());
+        if (checkResult != null) {
+            return checkResult;
+        }
+        // 乐观锁更新明细状态为退回
+        detail.setDetailStatus("01");
+        int rows = this.vmsBatchDetailService.updateDetailWithVersionCheck(detail);
+        if (rows == 0) {
+            return this.error("操作失败，数据已被修改，请刷新后重试");
+        }
+        return this.success();
     }
 
     @PreAuthorize("@ss.hasPermi('order:detail:remove')")
@@ -334,18 +479,29 @@ public class VmsBatchController extends BaseController {
             businessType = BusinessType.DELETE
     )
     @DeleteMapping({"/detail/{oids}"})
-    public AjaxResult removeDetail(@PathVariable Long[] oids) {
+    public AjaxResult removeDetail(@PathVariable Long[] oids, @RequestParam(value = "orgVersion", required = false) Integer orgVersion) {
         if (oids != null && oids.length > 0) {
-            VmsBatchDetail detail = this.vmsBatchDetailService.selectVmsBatchDetailByOid(oids[0]);
-            if (detail != null) {
-                AjaxResult checkResult = this.checkBatchDetailOperateStatus(detail.getBatchNo(), detail.getBranchOrgId(), detail.getSubbranchOrgId());
+            // 用第一条明细做机构状态校验
+            VmsBatchDetail firstDetail = this.vmsBatchDetailService.selectVmsBatchDetailByOid(oids[0]);
+            if (firstDetail != null) {
+                AjaxResult checkResult = this.checkBatchDetailOperateStatus(firstDetail.getBatchNo(), firstDetail.getBranchOrgId(), firstDetail.getSubbranchOrgId(), orgVersion);
                 if (checkResult != null) {
                     return checkResult;
                 }
             }
+            // 逐条乐观锁删除
+            for (Long oid : oids) {
+                VmsBatchDetail detail = this.vmsBatchDetailService.selectVmsBatchDetailByOid(oid);
+                if (detail == null) {
+                    return this.error("明细oid=" + oid + "不存在");
+                }
+                int rows = this.vmsBatchDetailService.deleteDetailWithVersionCheck(detail);
+                if (rows == 0) {
+                    return this.error("操作失败，数据已被修改，请刷新后重试");
+                }
+            }
         }
-
-        return this.toAjax(this.vmsBatchDetailService.deleteVmsBatchDetailByOids(oids));
+        return this.success();
     }
 
     @PreAuthorize("@ss.hasPermi('order:segment:list')")
@@ -416,7 +572,7 @@ public class VmsBatchController extends BaseController {
         }
     }
 
-    private AjaxResult checkBatchDetailOperateStatus(String batchNo, String branchOrgId, String subbranchOrgId) {
+    private AjaxResult checkBatchDetailOperateStatus(String batchNo, String branchOrgId, String subbranchOrgId, Integer orgVersion) {
         VmsBatch batchQuery = new VmsBatch();
         batchQuery.setBatchNo(batchNo);
         List<VmsBatch> batchList = this.vmsBatchService.selectVmsBatchList(batchQuery);
@@ -425,7 +581,7 @@ public class VmsBatchController extends BaseController {
         } else {
             VmsBatch batch = (VmsBatch)batchList.get(0);
             if (!"20".equals(batch.getStatus())) {
-                return this.error("当前批次状态不允許增删改操作");
+                return this.error("当前批次状态不允许增删改操作");
             } else {
                 VmsBatchOrgStatus orgStatusQuery = new VmsBatchOrgStatus();
                 orgStatusQuery.setBatchNo(batchNo);
@@ -434,8 +590,16 @@ public class VmsBatchController extends BaseController {
                 if (orgStatusList.isEmpty()) {
                     return this.error("未找到机构状态记录");
                 } else {
-                    String detailStatus = ((VmsBatchOrgStatus)orgStatusList.get(0)).getDetailStatus();
-                    return !"10".equals(detailStatus) && !"13".equals(detailStatus) ? this.error("当前机构状态不允许增删改操作") : null;
+                    VmsBatchOrgStatus orgStatus = (VmsBatchOrgStatus)orgStatusList.get(0);
+                    String detailStatus = orgStatus.getDetailStatus();
+                    if (!"10".equals(detailStatus) && !"13".equals(detailStatus)) {
+                        return this.error("当前机构状态不允许增删改操作");
+                    }
+                    // 机构状态乐观锁校验：防止支行操作时分行已锁定批次
+                    if (orgVersion != null && !orgVersion.equals(orgStatus.getVersion())) {
+                        return this.error("操作失败，批次机构状态已被修改，请刷新后重试");
+                    }
+                    return null;
                 }
             }
         }

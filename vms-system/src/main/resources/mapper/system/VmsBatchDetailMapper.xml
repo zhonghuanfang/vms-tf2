@@ -17,8 +17,9 @@
         <result property="detailStatus"    column="detail_status"    />
         <result property="statusRemark"    column="status_remark"    />
         <result property="delFlag"    column="del_flag"    />
+        <result property="version"    column="version"    />
     </resultMap>
-    <sql id="selectVmsBatchDetailVo">select oid, batch_no, template_oid, quantity, spec, price, total_amount, subbranch_org_id, branch_org_id, head_org_id, created_by, detail_view, detail_status, status_remark, del_flag from vms_batch_detail</sql>
+    <sql id="selectVmsBatchDetailVo">select oid, batch_no, template_oid, quantity, spec, price, total_amount, subbranch_org_id, branch_org_id, head_org_id, created_by, detail_view, detail_status, status_remark, del_flag, version from vms_batch_detail</sql>
     <select id="selectVmsBatchDetailList" parameterType="VmsBatchDetail" resultMap="VmsBatchDetailResult">
         <include refid="selectVmsBatchDetailVo"/><where>
             <if test="batchNo != null and batchNo != ''"> and batch_no = #{batchNo}</if>
@@ -56,6 +57,7 @@
             <if test="detailStatus != null">detail_status,</if>
             <if test="statusRemark != null">status_remark,</if>
             <if test="delFlag != null">del_flag,</if>
+            <if test="version != null">version,</if>
         </trim><trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="batchNo != null">#{batchNo},</if>
             <if test="templateOid != null">#{templateOid},</if>
@@ -71,6 +73,7 @@
             <if test="detailStatus != null">#{detailStatus},</if>
             <if test="statusRemark != null">#{statusRemark},</if>
             <if test="delFlag != null">#{delFlag},</if>
+            <if test="version != null">#{version},</if>
         </trim>
     </insert>
     <update id="updateVmsBatchDetail" parameterType="VmsBatchDetail">
@@ -91,6 +94,31 @@
             <if test="delFlag != null">del_flag = #{delFlag},</if>
         </trim> where oid = #{oid}
     </update>
+    <!-- 带乐观锁的更新：version自增 -->
+    <update id="updateDetailWithVersionCheck" parameterType="VmsBatchDetail">
+        update vms_batch_detail <trim prefix="SET" suffixOverrides=",">
+            <if test="batchNo != null">batch_no = #{batchNo},</if>
+            <if test="templateOid != null">template_oid = #{templateOid},</if>
+            <if test="quantity != null">quantity = #{quantity},</if>
+            <if test="spec != null">spec = #{spec},</if>
+            <if test="price != null">price = #{price},</if>
+            <if test="totalAmount != null">total_amount = #{totalAmount},</if>
+            <if test="subbranchOrgId != null">subbranch_org_id = #{subbranchOrgId},</if>
+            <if test="branchOrgId != null">branch_org_id = #{branchOrgId},</if>
+            <if test="headOrgId != null">head_org_id = #{headOrgId},</if>
+            <if test="createdBy != null">created_by = #{createdBy},</if>
+            <if test="detailView != null">detail_view = #{detailView},</if>
+            <if test="detailStatus != null">detail_status = #{detailStatus},</if>
+            <if test="statusRemark != null">status_remark = #{statusRemark},</if>
+            <if test="delFlag != null">del_flag = #{delFlag},</if>
+            version = version + 1,
+            update_time = sysdate()
+        </trim> where oid = #{oid} and version = #{version}
+    </update>
+    <!-- 带乐观锁的单条删除 -->
+    <delete id="deleteDetailWithVersionCheck" parameterType="VmsBatchDetail">
+        delete from vms_batch_detail where oid = #{oid} and version = #{version}
+    </delete>
     <delete id="deleteVmsBatchDetailByOid" parameterType="Long">delete from vms_batch_detail where oid = #{oid}</delete>
     <delete id="deleteVmsBatchDetailByOids" parameterType="String">
         delete from vms_batch_detail where oid in

@@ -9,6 +9,8 @@ public interface VmsBatchOrgStatusMapper
     public List<VmsBatchOrgStatus> selectVmsBatchOrgStatusList(VmsBatchOrgStatus vmsBatchOrgStatus);
     public int insertVmsBatchOrgStatus(VmsBatchOrgStatus vmsBatchOrgStatus);
     public int updateVmsBatchOrgStatus(VmsBatchOrgStatus vmsBatchOrgStatus);
+    /** 带乐观锁的状态更新，返回受影响行数（0表示并发冲突） */
+    public int updateOrgStatusWithVersionCheck(VmsBatchOrgStatus vmsBatchOrgStatus);
     public int deleteVmsBatchOrgStatusByOids(Long[] oids);
     public int deleteVmsBatchOrgStatusByOid(Long oid);
 }

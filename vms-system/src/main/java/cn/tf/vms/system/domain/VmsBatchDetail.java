@@ -55,6 +55,12 @@ public class VmsBatchDetail extends BaseEntity
     @Excel(name = "删除标志")
     private String delFlag;
 
+    @Excel(name = "乐观锁版本号")
+    private Integer version;
+
+    /** 非持久化字段：前端传入的批次机构状态版本号，用于乐观锁校验 */
+    private Integer orgVersion;
+
 
     public void setOid(Long oid) { this.oid = oid; }
     public Long getOid() { return oid; }
@@ -101,6 +107,12 @@ public class VmsBatchDetail extends BaseEntity
     public void setDelFlag(String delFlag) { this.delFlag = delFlag; }
     public String getDelFlag() { return delFlag; }
 
+    public void setVersion(Integer version) { this.version = version; }
+    public Integer getVersion() { return version; }
+
+    public void setOrgVersion(Integer orgVersion) { this.orgVersion = orgVersion; }
+    public Integer getOrgVersion() { return orgVersion; }
+
     @Override
     public String toString() {
         return new org.apache.commons.lang3.builder.ToStringBuilder(this,org.apache.commons.lang3.builder.ToStringStyle.MULTI_LINE_STYLE)
@@ -119,6 +131,7 @@ public class VmsBatchDetail extends BaseEntity
                 .append("detailStatus", getDetailStatus())
                 .append("statusRemark", getStatusRemark())
                 .append("delFlag", getDelFlag())
+                .append("version", getVersion())
                 .toString();
     }
 }

@@ -29,6 +29,16 @@
             <if test="headOrgId != null and headOrgId != ''"> and head_org_id = #{headOrgId}</if>
         </where>
     </select>
+    <select id="selectVmsBatchListByOrgId" resultMap="VmsBatchResult">
+        select b.oid, b.batch_no, b.batch_name, b.start_time, b.end_time, b.batch_desc,
+               s.detail_status status, b.status_remark, b.created_by, b.version, b.head_org_id
+        from vms_batch b
+        inner join vms_batch_org_status s on b.batch_no = s.batch_no
+        where s.org_id = #{orgId}
+        <if test="batch.batchNo != null and batch.batchNo != ''"> and b.batch_no = #{batch.batchNo}</if>
+        <if test="batch.batchName != null and batch.batchName != ''"> and b.batch_name like concat('%', #{batch.batchName}, '%')</if>
+        <if test="batch.status != null and batch.status != ''"> and s.detail_status = #{batch.status}</if>
+    </select>
     <select id="selectVmsBatchByOid" parameterType="Long" resultMap="VmsBatchResult">
         <include refid="selectVmsBatchVo"/> where oid = #{oid}
     </select>

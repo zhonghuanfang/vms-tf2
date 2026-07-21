@@ -18,6 +18,7 @@ public class VmsBatchOrgStatusServiceImpl implements IVmsBatchOrgStatusService
     @Override public List<VmsBatchOrgStatus> selectVmsBatchOrgStatusList(VmsBatchOrgStatus vmsBatchOrgStatus) { return vmsBatchOrgStatusMapper.selectVmsBatchOrgStatusList(vmsBatchOrgStatus); }
     @Override public int insertVmsBatchOrgStatus(VmsBatchOrgStatus vmsBatchOrgStatus) { vmsBatchOrgStatus.setCreateTime(DateUtils.getNowDate()); return vmsBatchOrgStatusMapper.insertVmsBatchOrgStatus(vmsBatchOrgStatus); }
     @Override public int updateVmsBatchOrgStatus(VmsBatchOrgStatus vmsBatchOrgStatus) { vmsBatchOrgStatus.setUpdateTime(DateUtils.getNowDate()); return vmsBatchOrgStatusMapper.updateVmsBatchOrgStatus(vmsBatchOrgStatus); }
+    @Override public int updateOrgStatusWithVersionCheck(VmsBatchOrgStatus vmsBatchOrgStatus) { return vmsBatchOrgStatusMapper.updateOrgStatusWithVersionCheck(vmsBatchOrgStatus); }
     @Override public int deleteVmsBatchOrgStatusByOids(Long[] oids) { return vmsBatchOrgStatusMapper.deleteVmsBatchOrgStatusByOids(oids); }
     @Override public int deleteVmsBatchOrgStatusByOid(Long oid) { return vmsBatchOrgStatusMapper.deleteVmsBatchOrgStatusByOid(oid); }
 }

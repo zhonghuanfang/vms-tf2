@@ -1,0 +1,193 @@
+-- 11. 订购批次表
+CREATE TABLE IF NOT EXISTS vms_batch (
+    oid BIGINT AUTO_INCREMENT PRIMARY KEY,
+    batch_no VARCHAR(32) NOT NULL COMMENT '批次号',
+    batch_name VARCHAR(200) COMMENT '批次名称',
+    start_time DATETIME COMMENT '开始时间',
+    end_time DATETIME COMMENT '结束时间',
+    batch_desc VARCHAR(500) COMMENT '批次说明',
+    status VARCHAR(50) DEFAULT '采集中' COMMENT '批次状态: 采集中/总行管理员审核中/生成订单成功',
+    status_remark VARCHAR(500) COMMENT '状态备注',
+    created_by VARCHAR(32) COMMENT '创建人ID',
+    version INT DEFAULT 1 COMMENT '乐观锁版本号',
+    create_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+    update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY uk_batch_no (batch_no)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='订购批次表';
+
+-- 12. 批次明细表
+CREATE TABLE IF NOT EXISTS vms_batch_detail (
+    oid BIGINT AUTO_INCREMENT PRIMARY KEY,
+    batch_no VARCHAR(32) NOT NULL COMMENT '批次号',
+    template_oid BIGINT COMMENT '凭证模版oid',
+    quantity INT COMMENT '数量',
+    spec VARCHAR(100) COMMENT '规格',
+    price DECIMAL(12,2) COMMENT '单价',
+    total_amount DECIMAL(14,2) COMMENT '总价',
+    subbranch_org_id VARCHAR(32) COMMENT '支行号',
+    branch_org_id VARCHAR(32) COMMENT '分行号',
+    head_org_id VARCHAR(32) COMMENT '总行号',
+    created_by VARCHAR(32) COMMENT '创建人ID',
+    detail_view VARCHAR(20) COMMENT '明细视角: 支行/分行/总行',
+    detail_status VARCHAR(100) COMMENT '明细状态',
+    status_remark VARCHAR(500) COMMENT '状态备注',
+    create_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+    update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) COMMENT='批次明细表';
+
+-- 13. 批次机构状态表
+CREATE TABLE IF NOT EXISTS vms_batch_org_status (
+    oid BIGINT AUTO_INCREMENT PRIMARY KEY,
+    batch_no VARCHAR(32) NOT NULL COMMENT '批次号',
+    org_id VARCHAR(32) COMMENT '机构号',
+    detail_status VARCHAR(100) COMMENT '明细状态',
+    status_remark VARCHAR(500) COMMENT '状态备注',
+    created_by VARCHAR(32) COMMENT '创建人ID',
+    version INT DEFAULT 1 COMMENT '乐观锁版本号',
+    create_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+    update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) COMMENT='批次机构状态表';
+
+-- 14. 订单表
+CREATE TABLE IF NOT EXISTS vms_order (
+    oid BIGINT AUTO_INCREMENT PRIMARY KEY,
+    batch_no VARCHAR(32) COMMENT '批次号',
+    template_oid BIGINT COMMENT '凭证模版oid',
+    voucher_name VARCHAR(200) COMMENT '凭证名称',
+    vendor_oid BIGINT COMMENT '厂商oid',
+    vendor_name VARCHAR(200) COMMENT '厂商名称',
+    quantity INT COMMENT '数量',
+    price DECIMAL(12,2) COMMENT '单价',
+    spec VARCHAR(100) COMMENT '规格',
+    amount DECIMAL(14,2) COMMENT '金额',
+    express_no VARCHAR(100) COMMENT '快递单号',
+    express_time DATETIME COMMENT '快递时间',
+    actual_claim_qty INT COMMENT '实际申领数量',
+    claim_start_no VARCHAR(100) COMMENT '领用开始号段',
+    claim_end_no VARCHAR(100) COMMENT '领用结束号段',
+    claim_status VARCHAR(50) COMMENT '申领状态: 待提交/审批中/申领成功/申领失败',
+    claim_remark VARCHAR(500) COMMENT '申领备注',
+    attach_url VARCHAR(500) COMMENT '上传附件地址',
+    order_status VARCHAR(50) COMMENT '订单状态',
+    create_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+    update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) COMMENT='订单表';
+
+-- 15. 批次订单模版号段表
+CREATE TABLE IF NOT EXISTS vms_batch_order_segment (
+    oid BIGINT AUTO_INCREMENT PRIMARY KEY,
+    batch_no VARCHAR(32) COMMENT '批次号',
+    template_oid BIGINT COMMENT '模版oid',
+    vendor_id VARCHAR(32) COMMENT '厂商ID',
+    print_start_no VARCHAR(100) COMMENT '印制开始号段',
+    print_end_no VARCHAR(100) COMMENT '印制结束号段',
+    create_time DATETIME DEFAULT CURRENT_TIMESTAMP
+) COMMENT='批次订单模版号段表';
+
+-- 16. 批次厂家订单表
+CREATE TABLE IF NOT EXISTS vms_batch_vendor_order (
+    oid BIGINT AUTO_INCREMENT PRIMARY KEY,
+    batch_no VARCHAR(32) COMMENT '批次号',
+    vendor_id VARCHAR(32) COMMENT '厂商ID',
+    order_fsip_url VARCHAR(500) COMMENT '订单模版fsip地址',
+    batch_status VARCHAR(50) DEFAULT '待发货' COMMENT '批次状态: 待发货/已完成',
+    create_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+    update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) COMMENT='批次厂家订单表';
+
+-- ============ -- 17. 业务操作日志表
+CREATE TABLE IF NOT EXISTS vms_business_log (
+    oid BIGINT AUTO_INCREMENT PRIMARY KEY,
+    batch_no VARCHAR(32) COMMENT '关联批次号',
+    order_oid BIGINT COMMENT '关联订单oid',
+    action_type VARCHAR(50) NOT NULL COMMENT '操作类型: CREATE_BATCH/SUBMIT/REJECT/AUDIT/CLAIM',
+    action_desc VARCHAR(500) COMMENT '操作描述',
+    operator_id VARCHAR(32) COMMENT '操作人ID',
+    operator_name VARCHAR(100) COMMENT '操作人姓名',
+    operator_org_id VARCHAR(32) COMMENT '操作机构',
+    detail_before TEXT COMMENT '操作前数据(JSON)',
+    detail_after TEXT COMMENT '操作后数据(JSON)',
+    version INT DEFAULT 1 COMMENT '乐观锁版本号',
+    create_time DATETIME DEFAULT CURRENT_TIMESTAMP
+) COMMENT='业务操作日志表';
+
+
+订购管理流程：
+总行下发批次-》支行管理员填写-》分行管理员汇总（可退回）—》提交分行复核员审核（流程管理平台）-总行管理员汇总（填写号段，可退回）-》总行复核员审核（对接凭证管理系统审核、可审核）-》通过后生成订单
+疑问：各级审核员退回如何处理？
+分行汇总和提交审核是否有前置条件：是否需全部支行均填写采购明细（不提示未填写的支行），无退回状态（需要提示，退回不生成订单）
+总行汇总和提交审核是否有前置条件：需全部已填写的分行均通过分行管理员审核（不提示未汇总的分行），无审核不通过，退回状态
+
+凭证申领流程：
+分行管理员提交凭证申领（填写数量、上传附件）-》管理流程平常审核 （填写分行申领号段）-》审批完成返回号段
+
+###接口：
+	web页面接口：
+		系统管理员：
+		系统管理菜单：人员/权限维护页面增删改接口
+		厂商管理菜单：厂商维护页面增删改接口
+		凭证模版管理菜单：凭证模版管理页面增删改接口
+
+		分行状态锁管理：一个批次下，如何控制支行先查询分行状态为可操作时进行增删改，增删改过程中，分行状态被分行人员修改；
+		订购管理菜单：
+			总行管理员、复核员角色：
+				批次列表查询接口：查询批次表，页面展示批次号 批次名称 开始时间 结束时间 状态 操作，此列表展示的状态为批次表中状态，可输出批次号作为查询条件，操作栏默认展示”订购汇总“，“状态为“采集中”和“总行复核员退回”时展示“锁定”，状态为“总行管理员汇总中”时，总行管理员展示“提交审核”和“解锁”按钮，状态为“生成订单成功”时，管理员和复核员展示订单明细，状态为“总行复核员审核中”时，总行复核员展示“审核按钮”；
+
+				新增订购批次接口：新增批次，批次表新增一条记录，填写信息见批次表字段，状态为采集中，总行下各分行在批次机构状态表新增一条机构为分行的状态为“待分行管理员汇总”的记录
+
+				批次明细查询接口：点击批次表操作栏“订购汇总”按钮，可以查询总行下各凭证类型的订购汇总明细（汇总方式：批次表关联批次机构状态表，通过批次总行与分行状态相同关联，分行“待总行管理员汇总”和”总行复核员退回“视为同一状态；在通过关联出来的分行，通过下面分行的汇总方式汇总），点击后新增“订购汇总”页签，汇总模式参考分行汇总的模式，展示字段凭证类别	凭证名称	凭证代码	规格	单价(元)	单位	总价(元)	订购数量	印制厂商	批次状态	开始号段	结束号段  操作，号段关联批次订单模版号段表查询，
+				批次状态为批次表状态，页面可以下拉凭证进行筛选，操作栏包括按钮“填写号段”、“支行明细”、“分行明细”（复核员不展示填写号段），状态为采集中时可以填写号段，支行明细和分行明细默认展示，点击支行明细，弹出一个表格，按支行名称和数量展示即可；点击分行明细这生成“分行订购明细”页签，带凭证类型跳转页面，展示分行	凭证类别	凭证名称	凭证代码	印制厂商	规格	单价	单位	总价	订购数量 批次状态 操作字段，批次状态为分行状态，汇总时关联批次机构状态表，页面可以下拉凭证类型和分行以及状态筛选，状态为“总行管理员汇总中时”，展示“退回”按钮，
+
+				填写号段提交：“订购汇总”页面点击填写号段后，弹出编辑框填写或修改开始和结束号段后提交，数据落地批次订单模版号段表
+				
+				批次锁定接口：总行管理员点击批次列表中的锁定按钮，在批次机表中状态改为“总行管理员汇总中”，日志流程表新增一条数据，在批次机构状态表中将总行下为分行状态该为“总行管理员汇总中”，
+				解锁操作相同，将状态改为“待总行管理员汇总”；
+				
+				批次提交审核接口：总行管理员点击批次列表中的锁定按钮，在批次机表中状态改为“总行复核员审核中”，日志流程表新增一条数据，批次机构状态表中将总行下为分行状态该为“总行复核员审核中”；
+				
+				批次审核接口：总行复核员对该批次进行审核（审核失败如何处理？-到总行管理员节点），审核通过按上面凭证汇总方式汇总生成分行下各凭证种类的订单，数据落地到订单表。针对同一厂商，不同凭证生成凭证名称/数量（规格）/单价/合计金额/印制号段订单表格，生成格式为PDF（预留PDF标题/抬头/日期），调用印章系统接口查询总行清算中心印章，将印章合成到PDF后上传cms，数据落地批次厂家合同表，在批次机表中状态改为“生成订单成功”，日志流程表新增一条数据，批次机构状态表中将总行下为分行状态该为“生成订单成功” 
+			支行管理员、复核员角色：暂不考虑复核员页面
+				批次列表查询接口：查询批次表，页面展示批次号 批次名称 开始时间 结束时间 状态 操作，此列表展示的状态，由批次表关联批次机构状态表查询当前支行所在分行的批次状态，可输出批次号作为查询条件，批次列表带操作栏，操作栏显示“订购明细”按钮
+				
+				批次明细列表查询接口：批次列表选择指定的批次后，带批次号跳转新的“订购明细”页签查询对应批次的明细列表，展示批次号 凭证类别	凭证名称	凭证代码	印制厂商	规格	单价	总价	订购数量	明细状态	批次状态	操作，管理员操作包括删除和修改，页面可以下来凭证类型、输入批次、下拉状态进行查询，管理员还可以批量导入、批量删除和新增明细，明细状态分正常和退回，批次状态同批次列表状态；
+				
+				批次明细新增接口：管理员在“订购明细”页面，点击“新增”按钮，弹出新增明细页面，选择凭证模版后，自动反显单价和规格，填写数量后自动计算价格，选择不同的凭证可新增多条，数据落地批次明细表，状态默认为正常；仅当前批次总行状态为“待总行管理员汇总”、批次分行状态为“待分行管理员汇总”或“分行复核员退回”时可以进行增删改操作（注：当前批次状态说明，总行视角当前批次状态看批次表，分行视角当前批次状态查看批次机构状态表，支行视角当前批次状态同分行批次状态，通过乐观锁version控制）；
+				批次明细修改、删除接口：当前批次总行状态为“待总行管理员汇总”，批次分行状态为“待分行管理员汇总”或“分行复核员退回”时，可以对批次明细进行修改/删除，修改过后，批次明细的状体统一改为正常；
+			分行管理员、复核员角色角色：暂不考虑复核员页面
+				批次列表查询接口：查询批次表，页面展示批次号 批次名称 开始时间 结束时间 状态 操作，此列表展示的状态，由批次表关联批次机构状态表查询当前支行所在分行的批次状态，可输出批次号作为查询条件，批次列表带操作栏，操作栏显示“凭证类型汇总”、“提交申请”、“支行明细”、“锁定”、“解锁”按钮，按钮展示逻辑见下面接口描述；
+
+				批次明细分行汇总查询接口：在批次列表操作栏点击“凭证类型汇总”跳转到“凭证类型汇总”页签，带批次号跳转到“凭证类型汇总”页签，可查询当前批次分行下各凭证种类支行填写采购明细汇总情况（查询批次明细表，按凭证种类分行下个支行累加汇总维度，批次明细状态为正常的），凭证类型汇总展示凭证类别	凭证名称	凭证代码	印制厂商	规格	单价	汇总数量	总价	订购数量	状态	操作，页面可以下拉凭证筛选，操作栏包含“支行明细”，点击”支行明细“带批次号、凭证类型、分行号跳转到“支行明细”页签，“支行明细”页面参考已有订购明细页面，页面展示支行机构	凭证类别	凭证名称	凭证代码	厂商	规格	单价	单位	总价	订购数量  明细状态  批次状态	操作，操作栏包含“修改”、“退回”按钮，修改和退回按钮仅在当前批次状态为“分行管理员汇总处理中”、“分行复核员退回”和明细状态为“正常”时展示，修改和退回可以修改批次明细数据和批次明细状态（修改退回预留todo调用安逸通知支行管理员），可以下拉分行下支行机构，下拉凭证查询，批次状态同批次列表中状态；“凭证类型汇总”和“支行明细”按钮默认展示
+
+				批次明细列表查询：在批次列表操作栏点击“支行明细”跳转到“支行明细”页签，参考订购明细页面，可查询指定批次下当前分行下各支行填写的采购明细列表（支行明细），与“凭证类型汇总”页面操作中“支行明细”跳转页面为同一页面；
+
+				批次锁定接口：状态为“待分行管理员汇总”和“分行复核员退回”状态的批次显示锁定按钮，点击锁定在批次机构状态表中将分行状态改为“分行管理员汇总处理中”的数据，日志流程表新增一条数据；已锁定（状态为“分行管理员汇总处理中”）的批次也可以点击解锁，在批次机构状态表中将分行状态改为“待分行管理员汇总”的状态，日志流程表新增一条数据；
+
+				批次提交审核接口：批次列表中状态为“分行管理员汇总处理中”的批次展示“提交申请”按钮，对接流程平台，将分行本批次订购数据提交流程平台审核，在批次机构状态表中将为分行状态该为“分行复核员审核中”数据（预留todo调用安逸通知分行复核员）；
+
+				锁定/解锁/和提交审核
+		凭证申领管理：
+			分行管理员、复核员角色：
+				申领列表查询接口：查询订单表内该结构申领数据，可输入批次，选择凭证类型的作为查询条件
+				申领提交审核接口：分行管理员针对申领列表中的数据	
+
+
+
+
+	流程管理平台平台交互接口：（审核由流程管理平台提供）
+		订购提交分行复核员审核/回调接口：回调接口若为通过，在批次机构状态表中将为分行状态改为“待总行管理员汇总”数据，日志流程表新增一条数据；若为不通过，在批次机构状态表中将分行状态改为“分行复核员退回”数据，日志流程表新增一条数据；
+		申领提交审核/回调接口？：流程平台调用核心入库并下拨领用后通知凭证管理系统
+	调用安逸接口：
+		订单填写快递后72小时未完成申领调用安逸给分行管理员和总行管理员发送预警通知
+		分行管理员修改或退回支行订购申请时发送安逸通知支行管理员
+		总行管理员退回分行订购申请时向分行管理员发送通知
+		总行管理员生成批次时向各支行管理员推送订购采集通知
+		
+	调用印章系统接口：
+		获取总行清算中心印章接口
+
+	微信工众号调用凭证管理系统接口：
+		批次订单列表查询接口（查询批次厂家订单表，提供批次号，状态查询条件）
+		批次订单模版下载接口
+		批次订单明细查询接口（查询订单表，批次订单表选择批次后进入，提供状态条件查询，分行条件查询）
+		批次订单明细更新接口（更新订单快递单号，厂家填完该批次下该厂商所有订单时，更新批次厂家订单表中该厂家订单状态为完成）
+		

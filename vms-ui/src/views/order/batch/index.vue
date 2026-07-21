@@ -20,7 +20,7 @@
       <el-form-item label="状态" prop="status">
         <el-select v-model="queryParams.status" placeholder="批次状态" clearable>
           <el-option
-            v-for="dict in dict.type.batch_status"
+            v-for="dict in statusDictOptions"
             :key="dict.value"
             :label="dict.label"
             :value="dict.value"
@@ -55,19 +55,28 @@
       <el-table-column label="批次说明" align="center" prop="batchDesc" />
       <el-table-column label="状态" align="center" width="160">
         <template slot-scope="scope">
-          <dict-tag :options="dict.type.batch_status" :value="scope.row.status"/>
+          <dict-tag :options="statusDictOptions" :value="scope.row.status"/>
         </template>
       </el-table-column>
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width" width="380">
         <template slot-scope="scope">
           <el-button size="mini" type="text" icon="el-icon-s-order" @click.stop="handleOrderSummary(scope.row)" v-hasPermi="['order:batch:query']">订购明细</el-button>
           <el-button size="mini" type="text" icon="el-icon-s-data" @click.stop="handleSummary(scope.row)" v-hasPermi="['order:batch:list']" v-if="isHeadOrBranch">凭证类型汇总</el-button>
-          <el-button size="mini" type="text" icon="el-icon-edit" @click.stop="handleUpdate(scope.row)" v-hasPermi="['order:batch:edit']" v-if="scope.row.status=='20'||scope.row.status=='23'">修改</el-button>
-          <el-button size="mini" type="text" icon="el-icon-lock" @click.stop="handleLock(scope.row)" v-hasPermi="['order:batch:lock']" v-if="scope.row.status=='20'||scope.row.status=='23'">锁定</el-button>
-          <el-button size="mini" type="text" icon="el-icon-unlock" @click.stop="handleUnlock(scope.row)" v-hasPermi="['order:batch:unlock']" v-if="scope.row.status=='21'">解锁</el-button>
-          <el-button size="mini" type="text" icon="el-icon-upload" @click.stop="handleSubmitReview(scope.row)" v-hasPermi="['order:batch:submit']" v-if="scope.row.status=='21'">提交审核</el-button>
-          <el-button size="mini" type="text" icon="el-icon-circle-check" @click.stop="handleApprove(scope.row)" v-hasPermi="['order:batch:approve']" v-if="scope.row.status=='22'">审核</el-button>
-          <el-button size="mini" type="text" icon="el-icon-document" @click.stop="handleOrderList(scope.row)" v-hasPermi="['order:order:list']" v-if="scope.row.status=='100'">订单明细</el-button>
+          <!-- 总行操作按钮 -->
+          <template v-if="isHead">
+            <el-button size="mini" type="text" icon="el-icon-edit" @click.stop="handleUpdate(scope.row)" v-hasPermi="['order:batch:edit']" v-if="scope.row.status=='20'||scope.row.status=='23'">修改</el-button>
+            <el-button size="mini" type="text" icon="el-icon-lock" @click.stop="handleLock(scope.row)" v-hasPermi="['order:batch:lock']" v-if="scope.row.status=='20'||scope.row.status=='23'">锁定</el-button>
+            <el-button size="mini" type="text" icon="el-icon-unlock" @click.stop="handleUnlock(scope.row)" v-hasPermi="['order:batch:unlock']" v-if="scope.row.status=='21'">解锁</el-button>
+            <el-button size="mini" type="text" icon="el-icon-upload" @click.stop="handleSubmitReview(scope.row)" v-hasPermi="['order:batch:submit']" v-if="scope.row.status=='21'">提交审核</el-button>
+            <el-button size="mini" type="text" icon="el-icon-circle-check" @click.stop="handleApprove(scope.row)" v-hasPermi="['order:batch:approve']" v-if="scope.row.status=='22'">审核</el-button>
+            <el-button size="mini" type="text" icon="el-icon-document" @click.stop="handleOrderList(scope.row)" v-hasPermi="['order:order:list']" v-if="scope.row.status=='100'">订单明细</el-button>
+          </template>
+          <!-- 分行操作按钮 -->
+          <template v-if="isBranch">
+            <el-button size="mini" type="text" icon="el-icon-lock" @click.stop="handleBranchLock(scope.row)" v-hasPermi="['order:batch:lock']" v-if="scope.row.status=='10'||scope.row.status=='13'">锁定</el-button>
+            <el-button size="mini" type="text" icon="el-icon-unlock" @click.stop="handleBranchUnlock(scope.row)" v-hasPermi="['order:batch:unlock']" v-if="scope.row.status=='11'">解锁</el-button>
+            <el-button size="mini" type="text" icon="el-icon-upload" @click.stop="handleBranchSubmitReview(scope.row)" v-hasPermi="['order:batch:submit']" v-if="scope.row.status=='11'">提交申请</el-button>
+          </template>
         </template>
       </el-table-column>
     </el-table>
@@ -120,11 +129,11 @@
 </template>
 
 <script>
-import { listBatch, getBatch, addBatch, updateBatch, delBatch, lockBatch, unlockBatch, submitReviewBatch, approveBatch, rejectBatch } from "@/api/order/batch"
+import { listBatch, getBatch, addBatch, updateBatch, delBatch, lockBatch, unlockBatch, submitReviewBatch, approveBatch, rejectBatch, branchLockBatch, branchUnlockBatch, branchSubmitReviewBatch } from "@/api/order/batch"
 
 export default {
   name: "Batch",
-  dicts: ['batch_status', 'sys_normal_disable', 'sys_dept_level'],
+  dicts: ['batch_status', 'batch_branch_status', 'sys_normal_disable', 'sys_dept_level'],
   data() {
     return {
       loading: true,
@@ -157,6 +166,19 @@ export default {
   computed: {
     isHeadOrBranch() {
       return this.$store.state.user.deptLevel === '1' || this.$store.state.user.deptLevel === '2'
+    },
+    isHead() {
+      return this.$store.state.user.deptLevel === '1'
+    },
+    isBranch() {
+      return this.$store.state.user.deptLevel === '2'
+    },
+    statusDictOptions() {
+      const level = this.$store.state.user.deptLevel
+      if (level === '2' || level === '4') {
+        return this.dict.type.batch_branch_status || []
+      }
+      return this.dict.type.batch_status || []
     }
   },
   methods: {
@@ -280,6 +302,33 @@ export default {
     // 订单明细
     handleOrderList(row) {
       this.$router.push({ path: '/order/batch/order/' + row.oid, query: { batchNo: row.batchNo } })
+    },
+    // 分行锁定
+    handleBranchLock(row) {
+      this.$modal.confirm('确认锁定批次 "' + row.batchName + '"？').then(() => {
+        return branchLockBatch({ batchNo: row.batchNo, version: row.version })
+      }).then(() => {
+        this.$modal.msgSuccess("锁定成功")
+        this.getList()
+      }).catch(() => {})
+    },
+    // 分行解锁
+    handleBranchUnlock(row) {
+      this.$modal.confirm('确认解锁批次 "' + row.batchName + '"？').then(() => {
+        return branchUnlockBatch({ batchNo: row.batchNo, version: row.version })
+      }).then(() => {
+        this.$modal.msgSuccess("解锁成功")
+        this.getList()
+      }).catch(() => {})
+    },
+    // 分行提交申请
+    handleBranchSubmitReview(row) {
+      this.$modal.confirm('确认提交审核批次 "' + row.batchName + '"？').then(() => {
+        return branchSubmitReviewBatch({ batchNo: row.batchNo, version: row.version })
+      }).then(() => {
+        this.$modal.msgSuccess("提交成功")
+        this.getList()
+      }).catch(() => {})
     }
   }
 }
