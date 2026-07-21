@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.tf.vms.system.mapper.VmsBatchOrderSegmentMapper">
+    <resultMap type="VmsBatchOrderSegment" id="VmsBatchOrderSegmentResult">
+        <result property="oid"    column="oid"    />
+        <result property="batchNo"    column="batch_no"    />
+        <result property="templateOid"    column="template_oid"    />
+        <result property="vendorId"    column="vendor_id"    />
+        <result property="printStartNo"    column="print_start_no"    />
+        <result property="printEndNo"    column="print_end_no"    />
+    </resultMap>
+    <sql id="selectVmsBatchOrderSegmentVo">select oid, batch_no, template_oid, vendor_id, print_start_no, print_end_no from vms_batch_order_segment</sql>
+    <select id="selectVmsBatchOrderSegmentList" parameterType="VmsBatchOrderSegment" resultMap="VmsBatchOrderSegmentResult">
+        <include refid="selectVmsBatchOrderSegmentVo"/><where>
+            <if test="batchNo != null and batchNo != ''"> and batch_no = #{batchNo}</if>
+            <if test="templateOid != null"> and template_oid = #{templateOid}</if>
+            <if test="vendorId != null and vendorId != ''"> and vendor_id = #{vendorId}</if>
+            <if test="printStartNo != null and printStartNo != ''"> and print_start_no = #{printStartNo}</if>
+            <if test="printEndNo != null and printEndNo != ''"> and print_end_no = #{printEndNo}</if>
+        </where>
+    </select>
+    <select id="selectVmsBatchOrderSegmentByOid" parameterType="Long" resultMap="VmsBatchOrderSegmentResult">
+        <include refid="selectVmsBatchOrderSegmentVo"/> where oid = #{oid}
+    </select>
+    <insert id="insertVmsBatchOrderSegment" parameterType="VmsBatchOrderSegment" useGeneratedKeys="true" keyProperty="oid">
+        insert into vms_batch_order_segment <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="batchNo != null">batch_no,</if>
+            <if test="templateOid != null">template_oid,</if>
+            <if test="vendorId != null">vendor_id,</if>
+            <if test="printStartNo != null">print_start_no,</if>
+            <if test="printEndNo != null">print_end_no,</if>
+        </trim><trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="batchNo != null">#{batchNo},</if>
+            <if test="templateOid != null">#{templateOid},</if>
+            <if test="vendorId != null">#{vendorId},</if>
+            <if test="printStartNo != null">#{printStartNo},</if>
+            <if test="printEndNo != null">#{printEndNo},</if>
+        </trim>
+    </insert>
+    <update id="updateVmsBatchOrderSegment" parameterType="VmsBatchOrderSegment">
+        update vms_batch_order_segment <trim prefix="SET" suffixOverrides=",">
+            <if test="batchNo != null">batch_no = #{batchNo},</if>
+            <if test="templateOid != null">template_oid = #{templateOid},</if>
+            <if test="vendorId != null">vendor_id = #{vendorId},</if>
+            <if test="printStartNo != null">print_start_no = #{printStartNo},</if>
+            <if test="printEndNo != null">print_end_no = #{printEndNo},</if>
+        </trim> where oid = #{oid}
+    </update>
+    <delete id="deleteVmsBatchOrderSegmentByOid" parameterType="Long">delete from vms_batch_order_segment where oid = #{oid}</delete>
+    <delete id="deleteVmsBatchOrderSegmentByOids" parameterType="String">
+        delete from vms_batch_order_segment where oid in
+        <foreach item="oid" collection="array" open="(" separator="," close=")">#{oid}</foreach>
+    </delete>
+</mapper>

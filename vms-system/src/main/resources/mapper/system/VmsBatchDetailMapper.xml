@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.tf.vms.system.mapper.VmsBatchDetailMapper">
+    <resultMap type="VmsBatchDetail" id="VmsBatchDetailResult">
+        <result property="oid"    column="oid"    />
+        <result property="batchNo"    column="batch_no"    />
+        <result property="templateOid"    column="template_oid"    />
+        <result property="quantity"    column="quantity"    />
+        <result property="spec"    column="spec"    />
+        <result property="price"    column="price"    />
+        <result property="totalAmount"    column="total_amount"    />
+        <result property="subbranchOrgId"    column="subbranch_org_id"    />
+        <result property="branchOrgId"    column="branch_org_id"    />
+        <result property="headOrgId"    column="head_org_id"    />
+        <result property="createdBy"    column="created_by"    />
+        <result property="detailView"    column="detail_view"    />
+        <result property="detailStatus"    column="detail_status"    />
+        <result property="statusRemark"    column="status_remark"    />
+        <result property="delFlag"    column="del_flag"    />
+    </resultMap>
+    <sql id="selectVmsBatchDetailVo">select oid, batch_no, template_oid, quantity, spec, price, total_amount, subbranch_org_id, branch_org_id, head_org_id, created_by, detail_view, detail_status, status_remark, del_flag from vms_batch_detail</sql>
+    <select id="selectVmsBatchDetailList" parameterType="VmsBatchDetail" resultMap="VmsBatchDetailResult">
+        <include refid="selectVmsBatchDetailVo"/><where>
+            <if test="batchNo != null and batchNo != ''"> and batch_no = #{batchNo}</if>
+            <if test="templateOid != null"> and template_oid = #{templateOid}</if>
+            <if test="quantity != null"> and quantity = #{quantity}</if>
+            <if test="spec != null and spec != ''"> and spec = #{spec}</if>
+            <if test="price != null"> and price = #{price}</if>
+            <if test="totalAmount != null"> and total_amount = #{totalAmount}</if>
+            <if test="subbranchOrgId != null and subbranchOrgId != ''"> and subbranch_org_id = #{subbranchOrgId}</if>
+            <if test="branchOrgId != null and branchOrgId != ''"> and branch_org_id = #{branchOrgId}</if>
+            <if test="headOrgId != null and headOrgId != ''"> and head_org_id = #{headOrgId}</if>
+            <if test="createdBy != null and createdBy != ''"> and created_by = #{createdBy}</if>
+            <if test="detailView != null and detailView != ''"> and detail_view = #{detailView}</if>
+            <if test="detailStatus != null and detailStatus != ''"> and detail_status = #{detailStatus}</if>
+            <if test="statusRemark != null and statusRemark != ''"> and status_remark = #{statusRemark}</if>
+            <if test="delFlag != null and delFlag != ''"> and del_flag = #{delFlag}</if>
+        </where>
+    </select>
+    <select id="selectVmsBatchDetailByOid" parameterType="Long" resultMap="VmsBatchDetailResult">
+        <include refid="selectVmsBatchDetailVo"/> where oid = #{oid}
+    </select>
+    <insert id="insertVmsBatchDetail" parameterType="VmsBatchDetail" useGeneratedKeys="true" keyProperty="oid">
+        insert into vms_batch_detail <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="batchNo != null">batch_no,</if>
+            <if test="templateOid != null">template_oid,</if>
+            <if test="quantity != null">quantity,</if>
+            <if test="spec != null">spec,</if>
+            <if test="price != null">price,</if>
+            <if test="totalAmount != null">total_amount,</if>
+            <if test="subbranchOrgId != null">subbranch_org_id,</if>
+            <if test="branchOrgId != null">branch_org_id,</if>
+            <if test="headOrgId != null">head_org_id,</if>
+            <if test="createdBy != null">created_by,</if>
+            <if test="detailView != null">detail_view,</if>
+            <if test="detailStatus != null">detail_status,</if>
+            <if test="statusRemark != null">status_remark,</if>
+            <if test="delFlag != null">del_flag,</if>
+        </trim><trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="batchNo != null">#{batchNo},</if>
+            <if test="templateOid != null">#{templateOid},</if>
+            <if test="quantity != null">#{quantity},</if>
+            <if test="spec != null">#{spec},</if>
+            <if test="price != null">#{price},</if>
+            <if test="totalAmount != null">#{totalAmount},</if>
+            <if test="subbranchOrgId != null">#{subbranchOrgId},</if>
+            <if test="branchOrgId != null">#{branchOrgId},</if>
+            <if test="headOrgId != null">#{headOrgId},</if>
+            <if test="createdBy != null">#{createdBy},</if>
+            <if test="detailView != null">#{detailView},</if>
+            <if test="detailStatus != null">#{detailStatus},</if>
+            <if test="statusRemark != null">#{statusRemark},</if>
+            <if test="delFlag != null">#{delFlag},</if>
+        </trim>
+    </insert>
+    <update id="updateVmsBatchDetail" parameterType="VmsBatchDetail">
+        update vms_batch_detail <trim prefix="SET" suffixOverrides=",">
+            <if test="batchNo != null">batch_no = #{batchNo},</if>
+            <if test="templateOid != null">template_oid = #{templateOid},</if>
+            <if test="quantity != null">quantity = #{quantity},</if>
+            <if test="spec != null">spec = #{spec},</if>
+            <if test="price != null">price = #{price},</if>
+            <if test="totalAmount != null">total_amount = #{totalAmount},</if>
+            <if test="subbranchOrgId != null">subbranch_org_id = #{subbranchOrgId},</if>
+            <if test="branchOrgId != null">branch_org_id = #{branchOrgId},</if>
+            <if test="headOrgId != null">head_org_id = #{headOrgId},</if>
+            <if test="createdBy != null">created_by = #{createdBy},</if>
+            <if test="detailView != null">detail_view = #{detailView},</if>
+            <if test="detailStatus != null">detail_status = #{detailStatus},</if>
+            <if test="statusRemark != null">status_remark = #{statusRemark},</if>
+            <if test="delFlag != null">del_flag = #{delFlag},</if>
+        </trim> where oid = #{oid}
+    </update>
+    <delete id="deleteVmsBatchDetailByOid" parameterType="Long">delete from vms_batch_detail where oid = #{oid}</delete>
+    <delete id="deleteVmsBatchDetailByOids" parameterType="String">
+        delete from vms_batch_detail where oid in
+        <foreach item="oid" collection="array" open="(" separator="," close=")">#{oid}</foreach>
+    </delete>
+</mapper>
+
+    <select id="selectBranchSummary" resultType="cn.tf.vms.system.domain.VmsBatchSummaryVo">
+        select d.template_oid as templateOid, t.category, t.template_name as templateName,
+            t.template_code as templateCode, v.vendor_name as vendorName, t.spec, t.price,
+            SUM(d.quantity) as totalQuantity, SUM(d.total_amount) as totalAmount, d.branch_org_id as branchOrgId
+        from vms_batch_detail d
+        left join vms_voucher_template t on d.template_oid = t.oid
+        left join vms_vendor v on t.vendor_id = v.vendor_id
+        <where>
+            <if test="batchNo != null and batchNo != ''"> and d.batch_no = #{batchNo}</if>
+            <if test="branchOrgId != null and branchOrgId != ''"> and d.branch_org_id = #{branchOrgId}</if>
+            and d.detail_status = '00'
+        </where>
+        group by d.template_oid, t.category, t.template_name, t.template_code, v.vendor_name, t.spec, t.price, d.branch_org_id
+    </select>
+    <select id="selectHeadSummary" resultType="cn.tf.vms.system.domain.VmsBatchSummaryVo">
+        select d.template_oid as templateOid, t.category, t.template_name as templateName,
+            t.template_code as templateCode, v.vendor_name as vendorName, t.spec, t.price,
+            SUM(d.quantity) as totalQuantity, SUM(d.total_amount) as totalAmount, d.branch_org_id as branchOrgId
+        from vms_batch_detail d
+        left join vms_voucher_template t on d.template_oid = t.oid
+        left join vms_vendor v on t.vendor_id = v.vendor_id
+        <where>
+            <if test="batchNo != null and batchNo != ''"> and d.batch_no = #{batchNo}</if>
+            and d.branch_org_id in (
+                select org_id from vms_batch_org_status
+                where batch_no = #{batchNo}
+                and (detail_status = '待总行管理员汇总' or detail_status = '总行复核员退回')
+            )
+            and d.detail_status = '00'
+        </where>
+        group by d.template_oid, t.category, t.template_name, t.template_code, v.vendor_name, t.spec, t.price, d.branch_org_id
+    </select>

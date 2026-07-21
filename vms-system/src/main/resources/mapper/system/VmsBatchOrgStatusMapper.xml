@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.tf.vms.system.mapper.VmsBatchOrgStatusMapper">
+    <resultMap type="VmsBatchOrgStatus" id="VmsBatchOrgStatusResult">
+        <result property="oid"    column="oid"    />
+        <result property="batchNo"    column="batch_no"    />
+        <result property="orgId"    column="org_id"    />
+        <result property="detailStatus"    column="detail_status"    />
+        <result property="statusRemark"    column="status_remark"    />
+        <result property="createdBy"    column="created_by"    />
+        <result property="version"    column="version"    />
+    </resultMap>
+    <sql id="selectVmsBatchOrgStatusVo">select oid, batch_no, org_id, detail_status, status_remark, created_by, version from vms_batch_org_status</sql>
+    <select id="selectVmsBatchOrgStatusList" parameterType="VmsBatchOrgStatus" resultMap="VmsBatchOrgStatusResult">
+        <include refid="selectVmsBatchOrgStatusVo"/><where>
+            <if test="batchNo != null and batchNo != ''"> and batch_no = #{batchNo}</if>
+            <if test="orgId != null and orgId != ''"> and org_id = #{orgId}</if>
+            <if test="detailStatus != null and detailStatus != ''"> and detail_status = #{detailStatus}</if>
+            <if test="statusRemark != null and statusRemark != ''"> and status_remark = #{statusRemark}</if>
+            <if test="createdBy != null and createdBy != ''"> and created_by = #{createdBy}</if>
+            <if test="version != null"> and version = #{version}</if>
+        </where>
+    </select>
+    <select id="selectVmsBatchOrgStatusByOid" parameterType="Long" resultMap="VmsBatchOrgStatusResult">
+        <include refid="selectVmsBatchOrgStatusVo"/> where oid = #{oid}
+    </select>
+    <insert id="insertVmsBatchOrgStatus" parameterType="VmsBatchOrgStatus" useGeneratedKeys="true" keyProperty="oid">
+        insert into vms_batch_org_status <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="batchNo != null">batch_no,</if>
+            <if test="orgId != null">org_id,</if>
+            <if test="detailStatus != null">detail_status,</if>
+            <if test="statusRemark != null">status_remark,</if>
+            <if test="createdBy != null">created_by,</if>
+            <if test="version != null">version,</if>
+        </trim><trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="batchNo != null">#{batchNo},</if>
+            <if test="orgId != null">#{orgId},</if>
+            <if test="detailStatus != null">#{detailStatus},</if>
+            <if test="statusRemark != null">#{statusRemark},</if>
+            <if test="createdBy != null">#{createdBy},</if>
+            <if test="version != null">#{version},</if>
+        </trim>
+    </insert>
+    <update id="updateVmsBatchOrgStatus" parameterType="VmsBatchOrgStatus">
+        update vms_batch_org_status <trim prefix="SET" suffixOverrides=",">
+            <if test="batchNo != null">batch_no = #{batchNo},</if>
+            <if test="orgId != null">org_id = #{orgId},</if>
+            <if test="detailStatus != null">detail_status = #{detailStatus},</if>
+            <if test="statusRemark != null">status_remark = #{statusRemark},</if>
+            <if test="createdBy != null">created_by = #{createdBy},</if>
+            <if test="version != null">version = #{version},</if>
+        </trim> where oid = #{oid}
+    </update>
+    <delete id="deleteVmsBatchOrgStatusByOid" parameterType="Long">delete from vms_batch_org_status where oid = #{oid}</delete>
+    <delete id="deleteVmsBatchOrgStatusByOids" parameterType="String">
+        delete from vms_batch_org_status where oid in
+        <foreach item="oid" collection="array" open="(" separator="," close=")">#{oid}</foreach>
+    </delete>
+</mapper>

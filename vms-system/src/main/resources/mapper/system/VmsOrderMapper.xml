@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.tf.vms.system.mapper.VmsOrderMapper">
+    <resultMap type="VmsOrder" id="VmsOrderResult">
+        <result property="oid"    column="oid"    />
+        <result property="batchNo"    column="batch_no"    />
+        <result property="templateOid"    column="template_oid"    />
+        <result property="voucherName"    column="voucher_name"    />
+        <result property="vendorOid"    column="vendor_oid"    />
+        <result property="vendorName"    column="vendor_name"    />
+        <result property="quantity"    column="quantity"    />
+        <result property="price"    column="price"    />
+        <result property="spec"    column="spec"    />
+        <result property="amount"    column="amount"    />
+        <result property="expressNo"    column="express_no"    />
+        <result property="expressTime"    column="express_time"    />
+        <result property="actualClaimQty"    column="actual_claim_qty"    />
+        <result property="claimStartNo"    column="claim_start_no"    />
+        <result property="claimEndNo"    column="claim_end_no"    />
+        <result property="claimStatus"    column="claim_status"    />
+        <result property="claimRemark"    column="claim_remark"    />
+        <result property="attachUrl"    column="attach_url"    />
+        <result property="orderStatus"    column="order_status"    />
+    </resultMap>
+    <sql id="selectVmsOrderVo">select oid, batch_no, template_oid, voucher_name, vendor_oid, vendor_name, quantity, price, spec, amount, express_no, express_time, actual_claim_qty, claim_start_no, claim_end_no, claim_status, claim_remark, attach_url, order_status from vms_order</sql>
+    <select id="selectVmsOrderList" parameterType="VmsOrder" resultMap="VmsOrderResult">
+        <include refid="selectVmsOrderVo"/><where>
+            <if test="batchNo != null and batchNo != ''"> and batch_no = #{batchNo}</if>
+            <if test="templateOid != null"> and template_oid = #{templateOid}</if>
+            <if test="voucherName != null and voucherName != ''"> and voucher_name = #{voucherName}</if>
+            <if test="vendorOid != null"> and vendor_oid = #{vendorOid}</if>
+            <if test="vendorName != null and vendorName != ''"> and vendor_name = #{vendorName}</if>
+            <if test="quantity != null"> and quantity = #{quantity}</if>
+            <if test="price != null"> and price = #{price}</if>
+            <if test="spec != null and spec != ''"> and spec = #{spec}</if>
+            <if test="amount != null"> and amount = #{amount}</if>
+            <if test="expressNo != null and expressNo != ''"> and express_no = #{expressNo}</if>
+            <if test="expressTime != null"> and express_time = #{expressTime}</if>
+            <if test="actualClaimQty != null"> and actual_claim_qty = #{actualClaimQty}</if>
+            <if test="claimStartNo != null and claimStartNo != ''"> and claim_start_no = #{claimStartNo}</if>
+            <if test="claimEndNo != null and claimEndNo != ''"> and claim_end_no = #{claimEndNo}</if>
+            <if test="claimStatus != null and claimStatus != ''"> and claim_status = #{claimStatus}</if>
+            <if test="claimRemark != null and claimRemark != ''"> and claim_remark = #{claimRemark}</if>
+            <if test="attachUrl != null and attachUrl != ''"> and attach_url = #{attachUrl}</if>
+            <if test="orderStatus != null and orderStatus != ''"> and order_status = #{orderStatus}</if>
+        </where>
+    </select>
+    <select id="selectVmsOrderByOid" parameterType="Long" resultMap="VmsOrderResult">
+        <include refid="selectVmsOrderVo"/> where oid = #{oid}
+    </select>
+    <insert id="insertVmsOrder" parameterType="VmsOrder" useGeneratedKeys="true" keyProperty="oid">
+        insert into vms_order <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="batchNo != null">batch_no,</if>
+            <if test="templateOid != null">template_oid,</if>
+            <if test="voucherName != null">voucher_name,</if>
+            <if test="vendorOid != null">vendor_oid,</if>
+            <if test="vendorName != null">vendor_name,</if>
+            <if test="quantity != null">quantity,</if>
+            <if test="price != null">price,</if>
+            <if test="spec != null">spec,</if>
+            <if test="amount != null">amount,</if>
+            <if test="expressNo != null">express_no,</if>
+            <if test="expressTime != null">express_time,</if>
+            <if test="actualClaimQty != null">actual_claim_qty,</if>
+            <if test="claimStartNo != null">claim_start_no,</if>
+            <if test="claimEndNo != null">claim_end_no,</if>
+            <if test="claimStatus != null">claim_status,</if>
+            <if test="claimRemark != null">claim_remark,</if>
+            <if test="attachUrl != null">attach_url,</if>
+            <if test="orderStatus != null">order_status,</if>
+        </trim><trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="batchNo != null">#{batchNo},</if>
+            <if test="templateOid != null">#{templateOid},</if>
+            <if test="voucherName != null">#{voucherName},</if>
+            <if test="vendorOid != null">#{vendorOid},</if>
+            <if test="vendorName != null">#{vendorName},</if>
+            <if test="quantity != null">#{quantity},</if>
+            <if test="price != null">#{price},</if>
+            <if test="spec != null">#{spec},</if>
+            <if test="amount != null">#{amount},</if>
+            <if test="expressNo != null">#{expressNo},</if>
+            <if test="expressTime != null">#{expressTime},</if>
+            <if test="actualClaimQty != null">#{actualClaimQty},</if>
+            <if test="claimStartNo != null">#{claimStartNo},</if>
+            <if test="claimEndNo != null">#{claimEndNo},</if>
+            <if test="claimStatus != null">#{claimStatus},</if>
+            <if test="claimRemark != null">#{claimRemark},</if>
+            <if test="attachUrl != null">#{attachUrl},</if>
+            <if test="orderStatus != null">#{orderStatus},</if>
+        </trim>
+    </insert>
+    <update id="updateVmsOrder" parameterType="VmsOrder">
+        update vms_order <trim prefix="SET" suffixOverrides=",">
+            <if test="batchNo != null">batch_no = #{batchNo},</if>
+            <if test="templateOid != null">template_oid = #{templateOid},</if>
+            <if test="voucherName != null">voucher_name = #{voucherName},</if>
+            <if test="vendorOid != null">vendor_oid = #{vendorOid},</if>
+            <if test="vendorName != null">vendor_name = #{vendorName},</if>
+            <if test="quantity != null">quantity = #{quantity},</if>
+            <if test="price != null">price = #{price},</if>
+            <if test="spec != null">spec = #{spec},</if>
+            <if test="amount != null">amount = #{amount},</if>
+            <if test="expressNo != null">express_no = #{expressNo},</if>
+            <if test="expressTime != null">express_time = #{expressTime},</if>
+            <if test="actualClaimQty != null">actual_claim_qty = #{actualClaimQty},</if>
+            <if test="claimStartNo != null">claim_start_no = #{claimStartNo},</if>
+            <if test="claimEndNo != null">claim_end_no = #{claimEndNo},</if>
+            <if test="claimStatus != null">claim_status = #{claimStatus},</if>
+            <if test="claimRemark != null">claim_remark = #{claimRemark},</if>
+            <if test="attachUrl != null">attach_url = #{attachUrl},</if>
+            <if test="orderStatus != null">order_status = #{orderStatus},</if>
+        </trim> where oid = #{oid}
+    </update>
+    <delete id="deleteVmsOrderByOid" parameterType="Long">delete from vms_order where oid = #{oid}</delete>
+    <delete id="deleteVmsOrderByOids" parameterType="String">
+        delete from vms_order where oid in
+        <foreach item="oid" collection="array" open="(" separator="," close=")">#{oid}</foreach>
+    </delete>
+</mapper>

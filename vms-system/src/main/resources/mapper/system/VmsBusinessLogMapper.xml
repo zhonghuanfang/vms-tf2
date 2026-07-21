@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.tf.vms.system.mapper.VmsBusinessLogMapper">
+    <resultMap type="VmsBusinessLog" id="VmsBusinessLogResult">
+        <result property="oid"    column="oid"    />
+        <result property="batchNo"    column="batch_no"    />
+        <result property="orderOid"    column="order_oid"    />
+        <result property="actionType"    column="action_type"    />
+        <result property="actionDesc"    column="action_desc"    />
+        <result property="operatorId"    column="operator_id"    />
+        <result property="operatorName"    column="operator_name"    />
+        <result property="operatorOrgId"    column="operator_org_id"    />
+        <result property="detailBefore"    column="detail_before"    />
+        <result property="detailAfter"    column="detail_after"    />
+        <result property="version"    column="version"    />
+    </resultMap>
+    <sql id="selectVmsBusinessLogVo">select oid, batch_no, order_oid, action_type, action_desc, operator_id, operator_name, operator_org_id, detail_before, detail_after, version from vms_business_log</sql>
+    <select id="selectVmsBusinessLogList" parameterType="VmsBusinessLog" resultMap="VmsBusinessLogResult">
+        <include refid="selectVmsBusinessLogVo"/><where>
+            <if test="batchNo != null and batchNo != ''"> and batch_no = #{batchNo}</if>
+            <if test="orderOid != null"> and order_oid = #{orderOid}</if>
+            <if test="actionType != null and actionType != ''"> and action_type = #{actionType}</if>
+            <if test="actionDesc != null and actionDesc != ''"> and action_desc = #{actionDesc}</if>
+            <if test="operatorId != null and operatorId != ''"> and operator_id = #{operatorId}</if>
+            <if test="operatorName != null and operatorName != ''"> and operator_name = #{operatorName}</if>
+            <if test="operatorOrgId != null and operatorOrgId != ''"> and operator_org_id = #{operatorOrgId}</if>
+            <if test="detailBefore != null and detailBefore != ''"> and detail_before = #{detailBefore}</if>
+            <if test="detailAfter != null and detailAfter != ''"> and detail_after = #{detailAfter}</if>
+            <if test="version != null"> and version = #{version}</if>
+        </where>
+    </select>
+    <select id="selectVmsBusinessLogByOid" parameterType="Long" resultMap="VmsBusinessLogResult">
+        <include refid="selectVmsBusinessLogVo"/> where oid = #{oid}
+    </select>
+    <insert id="insertVmsBusinessLog" parameterType="VmsBusinessLog" useGeneratedKeys="true" keyProperty="oid">
+        insert into vms_business_log <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="batchNo != null">batch_no,</if>
+            <if test="orderOid != null">order_oid,</if>
+            <if test="actionType != null">action_type,</if>
+            <if test="actionDesc != null">action_desc,</if>
+            <if test="operatorId != null">operator_id,</if>
+            <if test="operatorName != null">operator_name,</if>
+            <if test="operatorOrgId != null">operator_org_id,</if>
+            <if test="detailBefore != null">detail_before,</if>
+            <if test="detailAfter != null">detail_after,</if>
+            <if test="version != null">version,</if>
+        </trim><trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="batchNo != null">#{batchNo},</if>
+            <if test="orderOid != null">#{orderOid},</if>
+            <if test="actionType != null">#{actionType},</if>
+            <if test="actionDesc != null">#{actionDesc},</if>
+            <if test="operatorId != null">#{operatorId},</if>
+            <if test="operatorName != null">#{operatorName},</if>
+            <if test="operatorOrgId != null">#{operatorOrgId},</if>
+            <if test="detailBefore != null">#{detailBefore},</if>
+            <if test="detailAfter != null">#{detailAfter},</if>
+            <if test="version != null">#{version},</if>
+        </trim>
+    </insert>
+    <update id="updateVmsBusinessLog" parameterType="VmsBusinessLog">
+        update vms_business_log <trim prefix="SET" suffixOverrides=",">
+            <if test="batchNo != null">batch_no = #{batchNo},</if>
+            <if test="orderOid != null">order_oid = #{orderOid},</if>
+            <if test="actionType != null">action_type = #{actionType},</if>
+            <if test="actionDesc != null">action_desc = #{actionDesc},</if>
+            <if test="operatorId != null">operator_id = #{operatorId},</if>
+            <if test="operatorName != null">operator_name = #{operatorName},</if>
+            <if test="operatorOrgId != null">operator_org_id = #{operatorOrgId},</if>
+            <if test="detailBefore != null">detail_before = #{detailBefore},</if>
+            <if test="detailAfter != null">detail_after = #{detailAfter},</if>
+            <if test="version != null">version = #{version},</if>
+        </trim> where oid = #{oid}
+    </update>
+    <delete id="deleteVmsBusinessLogByOid" parameterType="Long">delete from vms_business_log where oid = #{oid}</delete>
+    <delete id="deleteVmsBusinessLogByOids" parameterType="String">
+        delete from vms_business_log where oid in
+        <foreach item="oid" collection="array" open="(" separator="," close=")">#{oid}</foreach>
+    </delete>
+</mapper>
