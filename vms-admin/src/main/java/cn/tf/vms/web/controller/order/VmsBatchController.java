@@ -327,6 +327,17 @@ public class VmsBatchController extends BaseController {
         if (StringUtils.isEmpty(orgId)) {
             return this.error("当前分行机构号为空");
         }
+        // 校验主批次状态：仅"待总行管理员汇总"(20)和"总行复核员退回"(23)时允许分行操作
+        VmsBatch batchQuery = new VmsBatch();
+        batchQuery.setBatchNo(param.getBatchNo());
+        List<VmsBatch> batchList = this.vmsBatchService.selectVmsBatchList(batchQuery);
+        if (batchList.isEmpty()) {
+            return this.error("批次不存在");
+        }
+        String batchStatus = batchList.get(0).getStatus();
+        if (!"20".equals(batchStatus) && !"23".equals(batchStatus)) {
+            return this.error("当前批次状态不允许分行操作");
+        }
         // 查询当前机构状态记录
         VmsBatchOrgStatus query = new VmsBatchOrgStatus();
         query.setBatchNo(param.getBatchNo());
