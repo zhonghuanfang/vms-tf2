@@ -151,7 +151,15 @@
             and d.branch_org_id in (
                 select org_id from vms_batch_org_status
                 where batch_no = #{batchNo}
-                and (detail_status = '待总行管理员汇总' or detail_status = '总行复核员退回')
+            <choose>
+                <when test="status == '20' || status == '23' ">
+                    and (detail_status = '20' or detail_status = '23')
+                </when>
+                <otherwise>
+                    and detail_status = #{status}
+                </otherwise>
+
+            </choose>
             )
             and d.detail_status = '00'
         </where>

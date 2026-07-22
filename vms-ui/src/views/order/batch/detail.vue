@@ -130,6 +130,7 @@ export default {
         pageNum: 1,
         pageSize: 10,
         batchNo: this.$route.query.batchNo,
+        branchOrgId: this.$route.query.branchOrgId || undefined,
         category: null,
         detailStatus: null
       },

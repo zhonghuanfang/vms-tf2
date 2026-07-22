@@ -99,7 +99,7 @@ export default {
     },
     handleBranchDetail(row) {
       this.$router.push({
-        path: '/order/batch/detail/' + row.oid,
+        path: '/order/batch/detail',
         query: { batchNo: this.batchNo, category: row.category, branchOrgId: row.branchOrgId }
       })
     },

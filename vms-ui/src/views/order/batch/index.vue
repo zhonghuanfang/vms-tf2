@@ -60,7 +60,7 @@
       </el-table-column>
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width" width="380">
         <template slot-scope="scope">
-          <el-button size="mini" type="text" icon="el-icon-s-order" @click.stop="handleOrderSummary(scope.row)" v-hasPermi="['order:batch:query']">订购明细</el-button>
+          <el-button size="mini" type="text" icon="el-icon-s-order" @click.stop="handleOrderSummary(scope.row)" v-hasPermi="['order:batch:query']" v-if="isBranchOrSubbranch">订购明细</el-button>
           <el-button size="mini" type="text" icon="el-icon-s-data" @click.stop="handleSummary(scope.row)" v-hasPermi="['order:batch:list']" v-if="isHeadOrBranch">凭证类型汇总</el-button>
           <!-- 总行操作按钮 -->
           <template v-if="isHead">
@@ -172,6 +172,9 @@ export default {
     },
     isBranch() {
       return this.$store.state.user.deptLevel === '2'
+    },
+    isBranchOrSubbranch() {
+      return this.$store.state.user.deptLevel === '2' || this.$store.state.user.deptLevel === '4'
     },
     statusDictOptions() {
       const level = this.$store.state.user.deptLevel

@@ -101,6 +101,12 @@ export const constantRoutes = [
     permissions: ["order:batch:list"],
     children: [
       {
+        path: "",
+        component: () => import("@/views/order/batch/detail"),
+        name: "BatchDetailQuery",
+        meta: { title: "订购明细", activeMenu: "/order/batch" },
+      },
+      {
         path: ":oid(\\d+)",
         component: () => import("@/views/order/batch/detail"),
         name: "BatchDetail",
@@ -216,6 +222,12 @@ export const dynamicRoutes = [
     hidden: true,
     permissions: ["order:batch:list"],
     children: [
+      {
+        path: "",
+        component: () => import("@/views/order/batch/detail"),
+        name: "BatchDetailQuery",
+        meta: { title: "订购明细", activeMenu: "/order/batch" },
+      },
       {
         path: ":oid(\\d+)",
         component: () => import("@/views/order/batch/detail"),
