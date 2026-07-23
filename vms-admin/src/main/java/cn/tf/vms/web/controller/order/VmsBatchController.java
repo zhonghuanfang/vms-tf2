@@ -163,7 +163,7 @@ public class VmsBatchController extends BaseController {
         branchQuery.setBatchNo(batchNo);
         List<VmsBatchOrgStatus> allBranchRecords = this.vmsBatchOrgStatusService.selectVmsBatchOrgStatusList(branchQuery);
         for (VmsBatchOrgStatus branch : allBranchRecords) {
-            if ("20".equals(branch.getDetailStatus())) {
+            if ("20".equals(branch.getDetailStatus()) || "23".equals(branch.getDetailStatus())) {
                 branch.setDetailStatus("21");
                 this.vmsBatchOrgStatusService.updateOrgStatusWithVersionCheck(branch);
             }

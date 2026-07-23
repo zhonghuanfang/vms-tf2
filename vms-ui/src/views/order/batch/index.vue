@@ -47,7 +47,7 @@
       <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
-    <el-table v-loading="loading" :data="batchList" @row-click="handleRowClick">
+    <el-table v-loading="loading" :data="batchList" :key="tableKey" @row-click="handleRowClick">
       <el-table-column label="批次号" align="center" prop="batchNo" width="160" />
       <el-table-column label="批次名称" align="center" prop="batchName" width="200" />
       <el-table-column label="开始时间" align="center" prop="startTime" width="160" />
@@ -63,13 +63,18 @@
           <el-button size="mini" type="text" icon="el-icon-s-order" @click.stop="handleOrderSummary(scope.row)" v-hasPermi="['order:batch:query']" v-if="isBranchOrSubbranch">订购明细</el-button>
           <el-button size="mini" type="text" icon="el-icon-s-data" @click.stop="handleSummary(scope.row)" v-hasPermi="['order:batch:list']" v-if="isHeadOrBranch">凭证类型汇总</el-button>
           <!-- 总行操作按钮 -->
-          <template v-if="isHead">
+          <template v-if="isHeadManager">
             <el-button size="mini" type="text" icon="el-icon-edit" @click.stop="handleUpdate(scope.row)" v-hasPermi="['order:batch:edit']" v-if="scope.row.status=='20'||scope.row.status=='23'">修改</el-button>
             <el-button size="mini" type="text" icon="el-icon-lock" @click.stop="handleLock(scope.row)" v-hasPermi="['order:batch:lock']" v-if="scope.row.status=='20'||scope.row.status=='23'">锁定</el-button>
             <el-button size="mini" type="text" icon="el-icon-unlock" @click.stop="handleUnlock(scope.row)" v-hasPermi="['order:batch:unlock']" v-if="scope.row.status=='21'">解锁</el-button>
             <el-button size="mini" type="text" icon="el-icon-upload" @click.stop="handleSubmitReview(scope.row)" v-hasPermi="['order:batch:submit']" v-if="scope.row.status=='21'">提交审核</el-button>
+          </template>
+          <template v-if="isHeadReviewer">
             <el-button size="mini" type="text" icon="el-icon-circle-check" @click.stop="handleApprove(scope.row)" v-hasPermi="['order:batch:approve']" v-if="scope.row.status=='22'">审核</el-button>
-            <el-button size="mini" type="text" icon="el-icon-document" @click.stop="handleOrderList(scope.row)" v-hasPermi="['order:order:list']" v-if="scope.row.status=='100'">订单明细</el-button>
+          </template>
+          <!-- 总行管理员和复核员共用按钮 -->
+          <template v-if="isHead">
+            <el-button size="mini" type="text" icon="el-icon-document" @click.stop="handleOrderList(scope.row)" v-if="scope.row.status=='100'">订单明细</el-button>
           </template>
           <!-- 分行操作按钮 -->
           <template v-if="isBranch">
@@ -191,6 +196,7 @@ export default {
       loading: true,
       showSearch: true,
       total: 0,
+      tableKey: 0,
       batchList: [],
       title: "",
       open: false,
@@ -230,6 +236,12 @@ export default {
     isHead() {
       return this.$store.state.user.deptLevel === '1'
     },
+    isHeadManager() {
+      return this.$store.state.user.roles.includes('head_manager')
+    },
+    isHeadReviewer() {
+      return this.$store.state.user.roles.includes('head_reviewer')
+    },
     isBranch() {
       return this.$store.state.user.deptLevel === '2'
     },
@@ -247,6 +259,7 @@ export default {
   methods: {
     getList() {
       this.loading = true
+      this.tableKey++
       listBatch(this.queryParams).then(response => {
         this.batchList = response.rows
         this.total = response.total
