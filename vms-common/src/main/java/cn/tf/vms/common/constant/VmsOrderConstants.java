@@ -2,19 +2,20 @@ package cn.tf.vms.common.constant;
 
 public class VmsOrderConstants
 {
-    public static final String BATCH_STATUS_PENDING_HEAD = "待总行管理员汇总";
-    public static final String BATCH_STATUS_HEAD_PROCESSING = "总行管理员汇总中";
-    public static final String BATCH_STATUS_HEAD_REVIEWING = "总行复核员审核中";
-    public static final String BATCH_STATUS_HEAD_REJECTED = "总行复核员退回";
-    public static final String BATCH_STATUS_ORDER_SUCCESS = "生成订单成功";
+    public static final String BATCH_STATUS_PENDING_HEAD = "20";//待总行管理员汇总
+    public static final String BATCH_STATUS_HEAD_PROCESSING = "21";//总行管理员汇总中
+    public static final String BATCH_STATUS_HEAD_REVIEWING = "22";//总行复核员审核中
+    public static final String BATCH_STATUS_HEAD_REJECTED = "23";//总行复核员退回
+    public static final String BATCH_STATUS_ORDER_SUCCESS = "100";//生成订单成功
 
     public static final String DETAIL_STATUS_NORMAL = "00";
     public static final String DETAIL_STATUS_REJECTED = "01";
 
-    public static final String BRANCH_STATUS_PENDING_BRANCH = "待分行管理员汇总";
-    public static final String BRANCH_STATUS_BRANCH_PROCESSING = "分行管理员汇总处理中";
-    public static final String BRANCH_STATUS_BRANCH_REVIEWING = "分行复核员审核中";
-    public static final String BRANCH_STATUS_BRANCH_REJECTED = "分行复核员退回";
+    public static final String BRANCH_STATUS_PENDING_BRANCH = "10";//待分行管理员汇总
+    public static final String BRANCH_STATUS_BRANCH_PROCESSING = "11";//分行管理员汇总处理中
+    public static final String BRANCH_STATUS_BRANCH_REVIEWING = "12";//分行复核员审核中
+    public static final String BRANCH_STATUS_BRANCH_REJECTED = "13";//分行复核员退回
+    public static final String BRANCH_STATUS_HEAD_REJECTED = "14";//总行管理员退回
 
     public static final String DEPT_LEVEL_HEAD = "1";
     public static final String DEPT_LEVEL_BRANCH = "2";

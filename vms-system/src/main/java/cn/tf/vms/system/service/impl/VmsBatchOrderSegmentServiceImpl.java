@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import cn.tf.vms.system.mapper.VmsBatchOrderSegmentMapper;
 import cn.tf.vms.system.domain.VmsBatchOrderSegment;
+import cn.tf.vms.system.domain.VmsBatchReviewVo;
 import cn.tf.vms.system.service.IVmsBatchOrderSegmentService;
 
 @Service
@@ -20,4 +21,7 @@ public class VmsBatchOrderSegmentServiceImpl implements IVmsBatchOrderSegmentSer
     @Override public int updateVmsBatchOrderSegment(VmsBatchOrderSegment vmsBatchOrderSegment) { vmsBatchOrderSegment.setUpdateTime(DateUtils.getNowDate()); return vmsBatchOrderSegmentMapper.updateVmsBatchOrderSegment(vmsBatchOrderSegment); }
     @Override public int deleteVmsBatchOrderSegmentByOids(Long[] oids) { return vmsBatchOrderSegmentMapper.deleteVmsBatchOrderSegmentByOids(oids); }
     @Override public int deleteVmsBatchOrderSegmentByOid(Long oid) { return vmsBatchOrderSegmentMapper.deleteVmsBatchOrderSegmentByOid(oid); }
+    @Override public List<VmsBatchReviewVo> selectReviewSegments(String batchNo) { return vmsBatchOrderSegmentMapper.selectReviewSegments(batchNo); }
+    @Override public List<VmsBatchOrderSegment> selectCurrentBatchSegments(String batchNo) { return vmsBatchOrderSegmentMapper.selectCurrentBatchSegments(batchNo); }
+    @Override public List<VmsBatchOrderSegment> selectLastBatchEndNos(String batchNo) { return vmsBatchOrderSegmentMapper.selectLastBatchEndNos(batchNo); }
 }

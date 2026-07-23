@@ -18,9 +18,12 @@ import cn.tf.vms.system.domain.VmsBatch;
 import cn.tf.vms.system.domain.VmsBatchDetail;
 import cn.tf.vms.system.domain.VmsBatchOrderSegment;
 import cn.tf.vms.system.domain.VmsBatchOrgStatus;
+import cn.tf.vms.system.domain.VmsBatchReviewVo;
 import cn.tf.vms.system.domain.VmsBatchSummaryVo;
+import cn.tf.vms.system.domain.VmsBatchVendorOrder;
 import cn.tf.vms.system.domain.VmsBusinessLog;
 import cn.tf.vms.system.domain.VmsOrder;
+import cn.tf.vms.system.domain.VmsVendor;
 import cn.tf.vms.system.service.ISysDeptService;
 import cn.tf.vms.system.service.IVmsBatchDetailService;
 import cn.tf.vms.system.service.IVmsBatchOrderSegmentService;
@@ -29,8 +32,11 @@ import cn.tf.vms.system.service.IVmsBatchService;
 import cn.tf.vms.system.service.IVmsBatchVendorOrderService;
 import cn.tf.vms.system.service.IVmsBusinessLogService;
 import cn.tf.vms.system.service.IVmsOrderService;
+import cn.tf.vms.system.service.IVmsVendorService;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.ArrayList;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -62,6 +68,8 @@ public class VmsBatchController extends BaseController {
     private IVmsOrderService vmsOrderService;
     @Autowired
     private IVmsBusinessLogService vmsBusinessLogService;
+    @Autowired
+    private IVmsVendorService vmsVendorService;
 
     public VmsBatchController() {
     }
@@ -137,55 +145,75 @@ public class VmsBatchController extends BaseController {
     }
 
     @PreAuthorize("@ss.hasPermi('order:batch:lock')")
-    @Log(
-            title = "批次锁定",
-            businessType = BusinessType.UPDATE
-    )
+    @Log(title = "批次锁定", businessType = BusinessType.UPDATE)
     @PutMapping({"/lock"})
     public AjaxResult lock(@RequestBody VmsBatch vmsBatch) {
         VmsBatch batch = this.vmsBatchService.selectVmsBatchByOid(vmsBatch.getOid());
         if (batch == null) {
             return this.error("批次不存在");
-        } else {
-            String username = SecurityUtils.getUsername();
-            batch.setStatus("21");
-            batch.setStatusRemark(vmsBatch.getStatusRemark());
-            this.vmsBatchService.updateVmsBatch(batch);
-            VmsBusinessLog log = new VmsBusinessLog();
-            log.setBatchNo(batch.getBatchNo());
-            log.setActionType("LOCK");
-            log.setActionDesc("锁定批次");
-            log.setOperatorId(username);
-            log.setOperatorName(username);
-            this.vmsBusinessLogService.insertVmsBusinessLog(log);
-            return this.success();
         }
+        String username = SecurityUtils.getUsername();
+        String batchNo = batch.getBatchNo();
+        // 1. 批次表：将批次状态改为"总行管理员汇总中"(21)
+        batch.setStatus("21");
+        batch.setStatusRemark(vmsBatch.getStatusRemark());
+        this.vmsBatchService.updateVmsBatch(batch);
+        // 2. 批次机构状态表：将当前总行下所有分行且状态为"待总行管理员汇总"(20)的记录改为"总行管理员汇总中"(21)
+        VmsBatchOrgStatus branchQuery = new VmsBatchOrgStatus();
+        branchQuery.setBatchNo(batchNo);
+        List<VmsBatchOrgStatus> allBranchRecords = this.vmsBatchOrgStatusService.selectVmsBatchOrgStatusList(branchQuery);
+        for (VmsBatchOrgStatus branch : allBranchRecords) {
+            if ("20".equals(branch.getDetailStatus())) {
+                branch.setDetailStatus("21");
+                this.vmsBatchOrgStatusService.updateOrgStatusWithVersionCheck(branch);
+            }
+        }
+        // 3. 日志流程表新增一条数据
+        VmsBusinessLog log = new VmsBusinessLog();
+        log.setBatchNo(batchNo);
+        log.setActionType("LOCK");
+        log.setActionDesc("锁定批次");
+        log.setOperatorId(username);
+        log.setOperatorName(username);
+        log.setOperatorOrgId(batch.getHeadOrgId());
+        this.vmsBusinessLogService.insertVmsBusinessLog(log);
+        return this.success();
     }
 
     @PreAuthorize("@ss.hasPermi('order:batch:unlock')")
-    @Log(
-            title = "批次解锁",
-            businessType = BusinessType.UPDATE
-    )
+    @Log(title = "批次解锁", businessType = BusinessType.UPDATE)
     @PutMapping({"/unlock"})
     public AjaxResult unlock(@RequestBody VmsBatch vmsBatch) {
         VmsBatch batch = this.vmsBatchService.selectVmsBatchByOid(vmsBatch.getOid());
         if (batch == null) {
             return this.error("批次不存在");
-        } else {
-            String username = SecurityUtils.getUsername();
-            batch.setStatus("20");
-            batch.setStatusRemark(vmsBatch.getStatusRemark());
-            this.vmsBatchService.updateVmsBatch(batch);
-            VmsBusinessLog log = new VmsBusinessLog();
-            log.setBatchNo(batch.getBatchNo());
-            log.setActionType("UNLOCK");
-            log.setActionDesc("解锁批次");
-            log.setOperatorId(username);
-            log.setOperatorName(username);
-            this.vmsBusinessLogService.insertVmsBusinessLog(log);
-            return this.success();
         }
+        String username = SecurityUtils.getUsername();
+        String batchNo = batch.getBatchNo();
+        // 1. 批次表：将批次状态改为"待总行管理员汇总"(20)
+        batch.setStatus("20");
+        batch.setStatusRemark(vmsBatch.getStatusRemark());
+        this.vmsBatchService.updateVmsBatch(batch);
+        // 2. 批次机构状态表：将当前总行下所有分行且状态为"总行管理员汇总中"(21)的记录改为"待总行管理员汇总"(20)
+        VmsBatchOrgStatus branchQuery = new VmsBatchOrgStatus();
+        branchQuery.setBatchNo(batchNo);
+        List<VmsBatchOrgStatus> allBranchRecords = this.vmsBatchOrgStatusService.selectVmsBatchOrgStatusList(branchQuery);
+        for (VmsBatchOrgStatus branch : allBranchRecords) {
+            if ("21".equals(branch.getDetailStatus())) {
+                branch.setDetailStatus("20");
+                this.vmsBatchOrgStatusService.updateOrgStatusWithVersionCheck(branch);
+            }
+        }
+        // 3. 日志流程表新增一条数据
+        VmsBusinessLog log = new VmsBusinessLog();
+        log.setBatchNo(batchNo);
+        log.setActionType("UNLOCK");
+        log.setActionDesc("解锁批次");
+        log.setOperatorId(username);
+        log.setOperatorName(username);
+        log.setOperatorOrgId(batch.getHeadOrgId());
+        this.vmsBusinessLogService.insertVmsBusinessLog(log);
+        return this.success();
     }
 
     @PreAuthorize("@ss.hasPermi('order:batch:submit')")
@@ -194,24 +222,84 @@ public class VmsBatchController extends BaseController {
             businessType = BusinessType.UPDATE
     )
     @PutMapping({"/submitReview"})
-    public AjaxResult submitReview(@RequestBody VmsBatch vmsBatch) {
-        VmsBatch batch = this.vmsBatchService.selectVmsBatchByOid(vmsBatch.getOid());
+    public AjaxResult submitReview(@RequestBody Map<String, Object> params) {
+        Long oid = Long.valueOf(params.get("oid").toString());
+        String statusRemark = params.get("statusRemark") != null ? params.get("statusRemark").toString() : null;
+        VmsBatch batch = this.vmsBatchService.selectVmsBatchByOid(oid);
         if (batch == null) {
             return this.error("批次不存在");
-        } else {
-            String username = SecurityUtils.getUsername();
-            batch.setStatus("22");
-            batch.setStatusRemark(vmsBatch.getStatusRemark());
-            this.vmsBatchService.updateVmsBatch(batch);
-            VmsBusinessLog log = new VmsBusinessLog();
-            log.setBatchNo(batch.getBatchNo());
-            log.setActionType("SUBMIT_REVIEW");
-            log.setActionDesc("提交审核");
-            log.setOperatorId(username);
-            log.setOperatorName(username);
-            this.vmsBusinessLogService.insertVmsBusinessLog(log);
-            return this.success();
         }
+        // 解析号段列表
+        List<Map<String, Object>> segmentMaps = (List<Map<String, Object>>) params.get("segments");
+        if (segmentMaps == null || segmentMaps.isEmpty()) {
+            return this.error("号段列表不能为空");
+        }
+        // 校验每条号段：必须填写完毕，且号段相减等于订购数量
+        List<VmsBatchOrderSegment> segments = new ArrayList<>();
+        for (int i = 0; i < segmentMaps.size(); i++) {
+            Map<String, Object> seg = segmentMaps.get(i);
+            String printStartNo = seg.get("printStartNo") != null ? seg.get("printStartNo").toString() : null;
+            String printEndNo = seg.get("printEndNo") != null ? seg.get("printEndNo").toString() : null;
+            Integer quantity = seg.get("totalQuantity") != null ? Integer.valueOf(seg.get("totalQuantity").toString()) : null;
+            if (StringUtils.isEmpty(printStartNo) || StringUtils.isEmpty(printEndNo)) {
+                return this.error("第" + (i + 1) + "行号段未填写完毕");
+            }
+            if (quantity == null || quantity == 0) {
+                return this.error("第" + (i + 1) + "行订购数量为0");
+            }
+            long startNo, endNo;
+            try {
+                startNo = Long.parseLong(printStartNo);
+                endNo = Long.parseLong(printEndNo);
+            } catch (NumberFormatException e) {
+                return this.error("第" + (i + 1) + "行号段格式错误，必须为数字");
+            }
+            if (endNo - startNo != quantity) {
+                return this.error("第" + (i + 1) + "行号段差值（" + (endNo - startNo) + "）不等于订购数量（" + quantity + "）");
+            }
+            VmsBatchOrderSegment segment = new VmsBatchOrderSegment();
+            segment.setBatchNo(batch.getBatchNo());
+            segment.setTemplateOid(seg.get("templateOid") != null ? Long.valueOf(seg.get("templateOid").toString()) : null);
+            segment.setVendorOid(seg.get("vendorOid") != null ? Long.valueOf(seg.get("vendorOid").toString()) : null);
+            segment.setPrintStartNo(printStartNo);
+            segment.setPrintEndNo(printEndNo);
+            segment.setQuantity(quantity);
+            segment.setSpec(seg.get("spec") != null ? seg.get("spec").toString() : null);
+            segment.setPrice(seg.get("price") != null ? new java.math.BigDecimal(seg.get("price").toString()) : null);
+            segment.setTotalAmount(seg.get("totalAmount") != null ? new java.math.BigDecimal(seg.get("totalAmount").toString()) : null);
+            segment.setCreateBy(SecurityUtils.getUsername());
+            segments.add(segment);
+        }
+        String username = SecurityUtils.getUsername();
+        String batchNo = batch.getBatchNo();
+        // 1. 号段数据落地 vms_batch_order_segment
+        for (VmsBatchOrderSegment segment : segments) {
+            this.vmsBatchOrderSegmentService.insertVmsBatchOrderSegment(segment);
+        }
+        // 2. 批次表状态改为"总行复核员审核中"(22)
+        batch.setStatus("22");
+        batch.setStatusRemark(statusRemark);
+        this.vmsBatchService.updateVmsBatch(batch);
+        // 3. 批次机构状态表：将当前总行下所有分行状态为"总行管理员汇总中"(21)的改为"总行复核员审核中"(22)
+        VmsBatchOrgStatus branchQuery = new VmsBatchOrgStatus();
+        branchQuery.setBatchNo(batchNo);
+        List<VmsBatchOrgStatus> allBranchRecords = this.vmsBatchOrgStatusService.selectVmsBatchOrgStatusList(branchQuery);
+        for (VmsBatchOrgStatus branch : allBranchRecords) {
+            if ("21".equals(branch.getDetailStatus())) {
+                branch.setDetailStatus("22");
+                this.vmsBatchOrgStatusService.updateOrgStatusWithVersionCheck(branch);
+            }
+        }
+        // 4. 日志流程表新增一条数据
+        VmsBusinessLog log = new VmsBusinessLog();
+        log.setBatchNo(batchNo);
+        log.setActionType("SUBMIT_REVIEW");
+        log.setActionDesc("提交审核");
+        log.setOperatorId(username);
+        log.setOperatorName(username);
+        log.setOperatorOrgId(batch.getHeadOrgId());
+        this.vmsBusinessLogService.insertVmsBusinessLog(log);
+        return this.success();
     }
 
     @PreAuthorize("@ss.hasPermi('order:batch:approve')")
@@ -224,20 +312,62 @@ public class VmsBatchController extends BaseController {
         VmsBatch batch = this.vmsBatchService.selectVmsBatchByOid(vmsBatch.getOid());
         if (batch == null) {
             return this.error("批次不存在");
-        } else {
-            String username = SecurityUtils.getUsername();
-            batch.setStatus("100");
-            batch.setStatusRemark(vmsBatch.getStatusRemark());
-            this.vmsBatchService.updateVmsBatch(batch);
-            VmsBusinessLog log = new VmsBusinessLog();
-            log.setBatchNo(batch.getBatchNo());
-            log.setActionType("APPROVE");
-            log.setActionDesc("审核通过，生成订单");
-            log.setOperatorId(username);
-            log.setOperatorName(username);
-            this.vmsBusinessLogService.insertVmsBusinessLog(log);
-            return this.success();
         }
+        String username = SecurityUtils.getUsername();
+        String batchNo = batch.getBatchNo();
+        // 1. 按凭证种类+分行汇总生成订单（仅汇总机构状态为"总行复核员审核中"(22)的分行）
+        List<VmsOrder> orderSummaryList = this.vmsBatchDetailService.selectOrderSummaryForApprove(batchNo);
+        if (orderSummaryList == null || orderSummaryList.isEmpty()) {
+            return this.error("未找到符合条件的明细数据，无法生成订单");
+        }
+        for (VmsOrder order : orderSummaryList) {
+            order.setBatchNo(batchNo);
+            this.vmsOrderService.insertVmsOrder(order);
+        }
+        // 2. 按厂商汇总生成批次厂家合同（数据落地批次厂家合同表，号段信息从vms_batch_order_segment获取）
+        List<VmsBatchReviewVo> reviewSegments = this.vmsBatchOrderSegmentService.selectReviewSegments(batchNo);
+        java.util.Map<Long, List<VmsBatchReviewVo>> vendorGroupMap = new java.util.LinkedHashMap<>();
+        for (VmsBatchReviewVo seg : reviewSegments) {
+            vendorGroupMap.computeIfAbsent(seg.getVendorOid(), k -> new ArrayList<>()).add(seg);
+        }
+        for (java.util.Map.Entry<Long, List<VmsBatchReviewVo>> entry : vendorGroupMap.entrySet()) {
+            VmsBatchVendorOrder vendorOrder = new VmsBatchVendorOrder();
+            vendorOrder.setBatchNo(batchNo);
+            vendorOrder.setVendorOid(entry.getKey());
+            // 汇总印制号段
+            StringBuilder printSegs = new StringBuilder();
+            for (VmsBatchReviewVo seg : entry.getValue()) {
+                if (printSegs.length() > 0) printSegs.append(",");
+                printSegs.append(seg.getPrintStartNo()).append("-").append(seg.getPrintEndNo());
+            }
+            vendorOrder.setOrderFsipUrl(printSegs.toString());
+            // TODO: 预留PDF生成、印章系统对接、CMS上传
+            this.vmsBatchVendorOrderService.insertVmsBatchVendorOrder(vendorOrder);
+        }
+        // 3. 批次表状态改为"生成订单成功"(100)
+        batch.setStatus("100");
+        batch.setStatusRemark(vmsBatch.getStatusRemark());
+        this.vmsBatchService.updateVmsBatch(batch);
+        // 4. 日志流程表新增一条数据
+        VmsBusinessLog log = new VmsBusinessLog();
+        log.setBatchNo(batchNo);
+        log.setActionType("APPROVE");
+        log.setActionDesc("审核通过，生成订单");
+        log.setOperatorId(username);
+        log.setOperatorName(username);
+        log.setOperatorOrgId(batch.getHeadOrgId());
+        this.vmsBusinessLogService.insertVmsBusinessLog(log);
+        // 5. 批次机构状态表：将总行下分行状态为"总行复核员审核中"(22)的改为"生成订单成功"(100)
+        VmsBatchOrgStatus branchQuery = new VmsBatchOrgStatus();
+        branchQuery.setBatchNo(batchNo);
+        List<VmsBatchOrgStatus> allBranchRecords = this.vmsBatchOrgStatusService.selectVmsBatchOrgStatusList(branchQuery);
+        for (VmsBatchOrgStatus branch : allBranchRecords) {
+            if ("22".equals(branch.getDetailStatus())) {
+                branch.setDetailStatus("100");
+                this.vmsBatchOrgStatusService.updateOrgStatusWithVersionCheck(branch);
+            }
+        }
+        return this.success();
     }
 
     @PreAuthorize("@ss.hasPermi('order:batch:reject')")
@@ -250,20 +380,33 @@ public class VmsBatchController extends BaseController {
         VmsBatch batch = this.vmsBatchService.selectVmsBatchByOid(vmsBatch.getOid());
         if (batch == null) {
             return this.error("批次不存在");
-        } else {
-            String username = SecurityUtils.getUsername();
-            batch.setStatus("23");
-            batch.setStatusRemark(vmsBatch.getStatusRemark());
-            this.vmsBatchService.updateVmsBatch(batch);
-            VmsBusinessLog log = new VmsBusinessLog();
-            log.setBatchNo(batch.getBatchNo());
-            log.setActionType("REJECT");
-            log.setActionDesc("审核驳回");
-            log.setOperatorId(username);
-            log.setOperatorName(username);
-            this.vmsBusinessLogService.insertVmsBusinessLog(log);
-            return this.success();
         }
+        String username = SecurityUtils.getUsername();
+        String batchNo = batch.getBatchNo();
+        // 1. 批次表状态改为"总行复核员退回"(23)
+        batch.setStatus("23");
+        batch.setStatusRemark(vmsBatch.getStatusRemark());
+        this.vmsBatchService.updateVmsBatch(batch);
+        // 2. 日志流程表新增一条数据
+        VmsBusinessLog log = new VmsBusinessLog();
+        log.setBatchNo(batchNo);
+        log.setActionType("REJECT");
+        log.setActionDesc("审核驳回");
+        log.setOperatorId(username);
+        log.setOperatorName(username);
+        log.setOperatorOrgId(batch.getHeadOrgId());
+        this.vmsBusinessLogService.insertVmsBusinessLog(log);
+        // 3. 批次机构状态表：将总行下分行状态为"总行复核员审核中"(22)的改为"总行复核员退回"(23)
+        VmsBatchOrgStatus branchQuery = new VmsBatchOrgStatus();
+        branchQuery.setBatchNo(batchNo);
+        List<VmsBatchOrgStatus> allBranchRecords = this.vmsBatchOrgStatusService.selectVmsBatchOrgStatusList(branchQuery);
+        for (VmsBatchOrgStatus branch : allBranchRecords) {
+            if ("22".equals(branch.getDetailStatus())) {
+                branch.setDetailStatus("23");
+                this.vmsBatchOrgStatusService.updateOrgStatusWithVersionCheck(branch);
+            }
+        }
+        return this.success();
     }
 
     /**
@@ -513,6 +656,64 @@ public class VmsBatchController extends BaseController {
             }
         }
         return this.success();
+    }
+
+    /**
+     * 获取审核弹窗号段列表：查询批次订单号段表，关联模版表和厂商表
+     */
+    @PreAuthorize("@ss.hasPermi('order:batch:approve')")
+    @GetMapping({"/review/segments"})
+    public AjaxResult reviewSegments(@RequestParam String batchNo) {
+        List<VmsBatchReviewVo> list = this.vmsBatchOrderSegmentService.selectReviewSegments(batchNo);
+        return this.success(list);
+    }
+
+    /**
+     * 获取提交审核弹窗的建议开始号段：
+     * 1. 当前批次号段表已有该凭证号段数据 → 直接使用当前批次的开始号段
+     * 2. 当前批次无号段数据 → 查询上一批次订购成功的号段，结束号段+1作为开始号段
+     * 3. 均未查到 → 开始号段为空
+     */
+    @PreAuthorize("@ss.hasPermi('order:batch:submit')")
+    @GetMapping({"/suggestStartNos"})
+    public AjaxResult suggestStartNos(@RequestParam String batchNo) {
+        java.util.Map<Long, String> resultMap = new java.util.LinkedHashMap<>();
+        // 1. 查询当前批次已有的号段数据
+        List<VmsBatchOrderSegment> currentSegments = this.vmsBatchOrderSegmentService.selectCurrentBatchSegments(batchNo);
+        java.util.Map<Long, VmsBatchOrderSegment> currentMap = new java.util.LinkedHashMap<>();
+        for (VmsBatchOrderSegment seg : currentSegments) {
+            currentMap.put(seg.getTemplateOid(), seg);
+        }
+        // 2. 查询上一批次订购成功的每种凭证最大结束号段
+        List<VmsBatchOrderSegment> lastEndNos = this.vmsBatchOrderSegmentService.selectLastBatchEndNos(batchNo);
+        java.util.Map<Long, VmsBatchOrderSegment> lastMap = new java.util.LinkedHashMap<>();
+        for (VmsBatchOrderSegment seg : lastEndNos) {
+            lastMap.put(seg.getTemplateOid(), seg);
+        }
+        // 3. 合并所有涉及的 templateOid
+        java.util.Set<Long> allTemplateOids = new java.util.LinkedHashSet<>();
+        allTemplateOids.addAll(currentMap.keySet());
+        allTemplateOids.addAll(lastMap.keySet());
+        // 4. 按优先级组装结果
+        for (Long templateOid : allTemplateOids) {
+            if (currentMap.containsKey(templateOid)) {
+                // 当前批次已有号段，直接使用开始号段
+                resultMap.put(templateOid, currentMap.get(templateOid).getPrintStartNo());
+            } else if (lastMap.containsKey(templateOid)) {
+                // 上一批次有号段，结束号段+1
+                String lastEndNo = lastMap.get(templateOid).getPrintEndNo();
+                if (lastEndNo != null && !lastEndNo.isEmpty()) {
+                    try {
+                        long endNo = Long.parseLong(lastEndNo);
+                        resultMap.put(templateOid, String.valueOf(endNo + 1));
+                    } catch (NumberFormatException e) {
+                        // 号段格式错误，不设置
+                    }
+                }
+            }
+            // 均未找到则不放入 resultMap，前端对应为空
+        }
+        return this.success(resultMap);
     }
 
     @PreAuthorize("@ss.hasPermi('order:segment:list')")

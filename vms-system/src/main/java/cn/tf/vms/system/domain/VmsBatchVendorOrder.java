@@ -16,8 +16,8 @@ public class VmsBatchVendorOrder extends BaseEntity
     @Excel(name = "批次号")
     private String batchNo;
 
-    @Excel(name = "厂商ID")
-    private String vendorId;
+    @Excel(name = "厂商oid")
+    private Long vendorOid;
 
     @Excel(name = "订单模版fsip地址")
     private String orderFsipUrl;
@@ -32,8 +32,8 @@ public class VmsBatchVendorOrder extends BaseEntity
     public void setBatchNo(String batchNo) { this.batchNo = batchNo; }
     public String getBatchNo() { return batchNo; }
 
-    public void setVendorId(String vendorId) { this.vendorId = vendorId; }
-    public String getVendorId() { return vendorId; }
+    public void setVendorOid(Long vendorOid) { this.vendorOid = vendorOid; }
+    public Long getVendorOid() { return vendorOid; }
 
     public void setOrderFsipUrl(String orderFsipUrl) { this.orderFsipUrl = orderFsipUrl; }
     public String getOrderFsipUrl() { return orderFsipUrl; }
@@ -46,7 +46,7 @@ public class VmsBatchVendorOrder extends BaseEntity
         return new org.apache.commons.lang3.builder.ToStringBuilder(this,org.apache.commons.lang3.builder.ToStringStyle.MULTI_LINE_STYLE)
                 .append("oid", getOid())
                 .append("batchNo", getBatchNo())
-                .append("vendorId", getVendorId())
+                .append("vendorOid", getVendorOid())
                 .append("orderFsipUrl", getOrderFsipUrl())
                 .append("batchStatus", getBatchStatus())
                 .toString();

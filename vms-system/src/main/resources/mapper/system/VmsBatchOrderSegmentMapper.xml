@@ -5,18 +5,28 @@
         <result property="oid"    column="oid"    />
         <result property="batchNo"    column="batch_no"    />
         <result property="templateOid"    column="template_oid"    />
-        <result property="vendorId"    column="vendor_id"    />
+        <result property="vendorOid"    column="vendor_oid"    />
         <result property="printStartNo"    column="print_start_no"    />
         <result property="printEndNo"    column="print_end_no"    />
+        <result property="quantity"    column="quantity"    />
+        <result property="spec"    column="spec"    />
+        <result property="price"    column="price"    />
+        <result property="totalAmount"    column="total_amount"    />
+        <result property="createdBy"    column="create_by"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
     </resultMap>
-    <sql id="selectVmsBatchOrderSegmentVo">select oid, batch_no, template_oid, vendor_id, print_start_no, print_end_no from vms_batch_order_segment</sql>
+    <sql id="selectVmsBatchOrderSegmentVo">select oid, batch_no, template_oid, vendor_oid, print_start_no, print_end_no, quantity, spec, price, total_amount, create_by, update_by, update_time from vms_batch_order_segment</sql>
     <select id="selectVmsBatchOrderSegmentList" parameterType="VmsBatchOrderSegment" resultMap="VmsBatchOrderSegmentResult">
         <include refid="selectVmsBatchOrderSegmentVo"/><where>
             <if test="batchNo != null and batchNo != ''"> and batch_no = #{batchNo}</if>
             <if test="templateOid != null"> and template_oid = #{templateOid}</if>
-            <if test="vendorId != null and vendorId != ''"> and vendor_id = #{vendorId}</if>
+            <if test="vendorOid != null and vendorOid != ''"> and vendor_oid = #{vendorOid}</if>
             <if test="printStartNo != null and printStartNo != ''"> and print_start_no = #{printStartNo}</if>
             <if test="printEndNo != null and printEndNo != ''"> and print_end_no = #{printEndNo}</if>
+            <if test="quantity != null"> and quantity = #{quantity}</if>
+            <if test="spec != null and spec != ''"> and spec = #{spec}</if>
+            <if test="createdBy != null and createdBy != ''"> and create_by = #{createdBy}</if>
         </where>
     </select>
     <select id="selectVmsBatchOrderSegmentByOid" parameterType="Long" resultMap="VmsBatchOrderSegmentResult">
@@ -26,24 +36,45 @@
         insert into vms_batch_order_segment <trim prefix="(" suffix=")" suffixOverrides=",">
             <if test="batchNo != null">batch_no,</if>
             <if test="templateOid != null">template_oid,</if>
-            <if test="vendorId != null">vendor_id,</if>
+            <if test="vendorOid != null">vendor_oid,</if>
             <if test="printStartNo != null">print_start_no,</if>
             <if test="printEndNo != null">print_end_no,</if>
+            <if test="quantity != null">quantity,</if>
+            <if test="spec != null">spec,</if>
+            <if test="price != null">price,</if>
+            <if test="totalAmount != null">total_amount,</if>
+            <if test="createdBy != null">create_by,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
         </trim><trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="batchNo != null">#{batchNo},</if>
             <if test="templateOid != null">#{templateOid},</if>
-            <if test="vendorId != null">#{vendorId},</if>
+            <if test="vendorOid != null">#{vendorOid},</if>
             <if test="printStartNo != null">#{printStartNo},</if>
             <if test="printEndNo != null">#{printEndNo},</if>
+            <if test="quantity != null">#{quantity},</if>
+            <if test="spec != null">#{spec},</if>
+            <if test="price != null">#{price},</if>
+            <if test="totalAmount != null">#{totalAmount},</if>
+            <if test="createdBy != null">#{createdBy},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
         </trim>
     </insert>
     <update id="updateVmsBatchOrderSegment" parameterType="VmsBatchOrderSegment">
         update vms_batch_order_segment <trim prefix="SET" suffixOverrides=",">
             <if test="batchNo != null">batch_no = #{batchNo},</if>
             <if test="templateOid != null">template_oid = #{templateOid},</if>
-            <if test="vendorId != null">vendor_id = #{vendorId},</if>
+            <if test="vendorOid != null">vendor_oid = #{vendorOid},</if>
             <if test="printStartNo != null">print_start_no = #{printStartNo},</if>
             <if test="printEndNo != null">print_end_no = #{printEndNo},</if>
+            <if test="quantity != null">quantity = #{quantity},</if>
+            <if test="spec != null">spec = #{spec},</if>
+            <if test="price != null">price = #{price},</if>
+            <if test="totalAmount != null">total_amount = #{totalAmount},</if>
+            <if test="createBy != null">create_by = #{createdBy},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
         </trim> where oid = #{oid}
     </update>
     <delete id="deleteVmsBatchOrderSegmentByOid" parameterType="Long">delete from vms_batch_order_segment where oid = #{oid}</delete>
@@ -51,4 +82,31 @@
         delete from vms_batch_order_segment where oid in
         <foreach item="oid" collection="array" open="(" separator="," close=")">#{oid}</foreach>
     </delete>
+    <select id="selectReviewSegments" parameterType="String" resultType="cn.tf.vms.system.domain.VmsBatchReviewVo">
+        select s.template_oid as templateOid, t.category, t.template_name as templateName,
+            t.template_code as templateCode, s.vendor_oid as vendorOid, v.vendor_name as vendorName,
+            s.spec, s.price, s.quantity, s.total_amount as totalAmount,
+            s.print_start_no as printStartNo, s.print_end_no as printEndNo
+        from vms_batch_order_segment s
+        left join vms_voucher_template t on s.template_oid = t.oid
+        left join vms_vendor v on s.vendor_oid = v.oid
+        where s.batch_no = #{batchNo}
+    </select>
+    <!-- 查询当前批次已有的号段数据 -->
+    <select id="selectCurrentBatchSegments" parameterType="String" resultType="cn.tf.vms.system.domain.VmsBatchOrderSegment">
+        select template_oid as templateOid, print_start_no as printStartNo, print_end_no as printEndNo
+        from vms_batch_order_segment
+        where batch_no = #{batchNo}
+    </select>
+    <!-- 查询上一个订购成功批次的每种凭证最大结束号段 -->
+    <select id="selectLastBatchEndNos" parameterType="String" resultType="cn.tf.vms.system.domain.VmsBatchOrderSegment">
+        select s.template_oid as templateOid, MAX(s.print_end_no) as printEndNo
+        from vms_batch_order_segment s
+        where s.batch_no = (
+            select b2.batch_no from vms_batch b2
+            where b2.status = '100' and b2.batch_no != #{batchNo}
+            order by b2.oid desc limit 1
+        )
+        group by s.template_oid
+    </select>
 </mapper>

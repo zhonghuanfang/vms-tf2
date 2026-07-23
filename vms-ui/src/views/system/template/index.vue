@@ -65,10 +65,10 @@
           @keyup.enter.native="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="厂商ID" prop="vendorId">
+      <el-form-item label="厂商oid" prop="vendorOid">
         <el-input
-          v-model="queryParams.vendorId"
-          placeholder="请输入厂商ID"
+          v-model="queryParams.vendorOid"
+          placeholder="请输入厂商oid"
           clearable
           @keyup.enter.native="handleQuery"
         />
@@ -169,7 +169,7 @@
       <el-table-column label="规格" align="center" prop="spec" />
       <el-table-column label="单位" align="center" prop="unit" />
       <el-table-column label="税率%" align="center" prop="taxRate" />
-      <el-table-column label="厂商ID" align="center" prop="vendorId" />
+      <el-table-column label="厂商oid" align="center" prop="vendorOid" />
       <el-table-column label="管理机构" align="center" prop="manageOrg" />
       <el-table-column label="管理人" align="center" prop="managePerson" />
       <el-table-column label="管理人联系方式" align="center" prop="managePhone" />
@@ -259,8 +259,8 @@
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="厂商ID" prop="vendorId">
-              <el-input v-model="form.vendorId" placeholder="请输入厂商ID" />
+            <el-form-item label="厂商oid" prop="vendorOid">
+              <el-input v-model="form.vendorOid" placeholder="请输入厂商oid" />
             </el-form-item>
           </el-col>
           <el-col :span="12">
@@ -343,7 +343,7 @@ export default {
         spec: null,
         unit: null,
         taxRate: null,
-        vendorId: null,
+        vendorOid: null,
         manageOrg: null,
         managePerson: null,
         managePhone: null,
@@ -395,7 +395,7 @@ export default {
         spec: null,
         unit: null,
         taxRate: null,
-        vendorId: null,
+        vendorOid: null,
         manageOrg: null,
         managePerson: null,
         managePhone: null,

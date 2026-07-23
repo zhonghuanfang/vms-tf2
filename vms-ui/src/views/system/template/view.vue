@@ -85,9 +85,9 @@
         </el-col>
         <el-col :span="12">
           <div class="info-item">
-            <label class="info-label">厂商ID：</label>
+            <label class="info-label">厂商oid：</label>
             <span class="info-value plaintext">
-              {{ info.vendorId }}
+              {{ info.vendorOid }}
             </span>
           </div>
         </el-col>

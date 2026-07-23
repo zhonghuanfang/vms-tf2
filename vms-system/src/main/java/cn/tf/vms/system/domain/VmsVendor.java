@@ -18,10 +18,6 @@ public class VmsVendor extends BaseEntity
     /** $column.columnComment */
     private Long oid;
 
-    /** 厂商ID */
-    @Excel(name = "厂商ID")
-    private String vendorId;
-
     /** 厂商名称 */
     @Excel(name = "厂商名称")
     private String vendorName;
@@ -62,16 +58,6 @@ public class VmsVendor extends BaseEntity
     public Long getOid()
     {
         return oid;
-    }
-
-    public void setVendorId(String vendorId)
-    {
-        this.vendorId = vendorId;
-    }
-
-    public String getVendorId()
-    {
-        return vendorId;
     }
 
     public void setVendorName(String vendorName)
@@ -158,7 +144,6 @@ public class VmsVendor extends BaseEntity
     public String toString() {
         return new ToStringBuilder(this, ToStringStyle.MULTI_LINE_STYLE)
                 .append("oid", getOid())
-                .append("vendorId", getVendorId())
                 .append("vendorName", getVendorName())
                 .append("vendorAddress", getVendorAddress())
                 .append("contactName", getContactName())

@@ -2,6 +2,7 @@ package cn.tf.vms.system.mapper;
 
 import java.util.List;
 import cn.tf.vms.system.domain.VmsBatchOrderSegment;
+import cn.tf.vms.system.domain.VmsBatchReviewVo;
 
 public interface VmsBatchOrderSegmentMapper
 {
@@ -11,4 +12,7 @@ public interface VmsBatchOrderSegmentMapper
     public int updateVmsBatchOrderSegment(VmsBatchOrderSegment vmsBatchOrderSegment);
     public int deleteVmsBatchOrderSegmentByOids(Long[] oids);
     public int deleteVmsBatchOrderSegmentByOid(Long oid);
+    public List<VmsBatchReviewVo> selectReviewSegments(String batchNo);
+    public List<VmsBatchOrderSegment> selectCurrentBatchSegments(String batchNo);
+    public List<VmsBatchOrderSegment> selectLastBatchEndNos(String batchNo);
 }

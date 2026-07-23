@@ -3,6 +3,7 @@ package cn.tf.vms.system.mapper;
 import java.util.List;
 import cn.tf.vms.system.domain.VmsBatchDetail;
 import cn.tf.vms.system.domain.VmsBatchSummaryVo;
+import cn.tf.vms.system.domain.VmsOrder;
 import org.apache.ibatis.annotations.Param;
 
 public interface VmsBatchDetailMapper
@@ -22,4 +23,7 @@ public interface VmsBatchDetailMapper
 
     public List<VmsBatchSummaryVo> selectBranchSummary(@Param("batchNo") String batchNo, @Param("branchOrgId") String branchOrgId);
     public List<VmsBatchSummaryVo> selectHeadSummary(@Param("batchNo") String batchNo, @Param("status") String status);
+
+    /** 审核通过时按凭证种类+分行汇总生成订单，仅汇总机构状态为"总行复核员审核中"(22)的分行 */
+    public List<VmsOrder> selectOrderSummaryForApprove(@Param("batchNo") String batchNo);
 }

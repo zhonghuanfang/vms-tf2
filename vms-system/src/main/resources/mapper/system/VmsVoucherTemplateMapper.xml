@@ -15,7 +15,7 @@
         <result property="spec"    column="spec"    />
         <result property="unit"    column="unit"    />
         <result property="taxRate"    column="tax_rate"    />
-        <result property="vendorId"    column="vendor_id"    />
+        <result property="vendorOid"    column="vendor_oid"    />
         <result property="manageOrg"    column="manage_org"    />
         <result property="managePerson"    column="manage_person"    />
         <result property="managePhone"    column="manage_phone"    />
@@ -30,7 +30,7 @@
     </resultMap>
 
     <sql id="selectVmsVoucherTemplateVo">
-        select oid, template_id, template_name, template_code, template_type, category, price, spec, unit, tax_rate, vendor_id, manage_org, manage_person, manage_phone, version, fsip_url, create_by, create_time, update_by, update_time, remark, status from vms_voucher_template
+        select oid, template_id, template_name, template_code, template_type, category, price, spec, unit, tax_rate, vendor_oid, manage_org, manage_person, manage_phone, version, fsip_url, create_by, create_time, update_by, update_time, remark, status from vms_voucher_template
     </sql>
 
     <select id="selectVmsVoucherTemplateList" parameterType="VmsVoucherTemplate" resultMap="VmsVoucherTemplateResult">
@@ -45,7 +45,7 @@
             <if test="spec != null  and spec != ''"> and spec = #{spec}</if>
             <if test="unit != null  and unit != ''"> and unit = #{unit}</if>
             <if test="taxRate != null "> and tax_rate = #{taxRate}</if>
-            <if test="vendorId != null  and vendorId != ''"> and vendor_id = #{vendorId}</if>
+            <if test="vendorOid != null "> and vendor_oid = #{vendorOid}</if>
             <if test="manageOrg != null  and manageOrg != ''"> and manage_org = #{manageOrg}</if>
             <if test="managePerson != null  and managePerson != ''"> and manage_person = #{managePerson}</if>
             <if test="managePhone != null  and managePhone != ''"> and manage_phone = #{managePhone}</if>
@@ -72,7 +72,7 @@
             <if test="spec != null">spec,</if>
             <if test="unit != null">unit,</if>
             <if test="taxRate != null">tax_rate,</if>
-            <if test="vendorId != null">vendor_id,</if>
+            <if test="vendorOid != null">vendor_oid,</if>
             <if test="manageOrg != null">manage_org,</if>
             <if test="managePerson != null">manage_person,</if>
             <if test="managePhone != null">manage_phone,</if>
@@ -95,7 +95,7 @@
             <if test="spec != null">#{spec},</if>
             <if test="unit != null">#{unit},</if>
             <if test="taxRate != null">#{taxRate},</if>
-            <if test="vendorId != null">#{vendorId},</if>
+            <if test="vendorOid != null">#{vendorOid},</if>
             <if test="manageOrg != null">#{manageOrg},</if>
             <if test="managePerson != null">#{managePerson},</if>
             <if test="managePhone != null">#{managePhone},</if>
@@ -122,7 +122,7 @@
             <if test="spec != null">spec = #{spec},</if>
             <if test="unit != null">unit = #{unit},</if>
             <if test="taxRate != null">tax_rate = #{taxRate},</if>
-            <if test="vendorId != null">vendor_id = #{vendorId},</if>
+            <if test="vendorOid != null">vendor_oid = #{vendorOid},</if>
             <if test="manageOrg != null">manage_org = #{manageOrg},</if>
             <if test="managePerson != null">manage_person = #{managePerson},</if>
             <if test="managePhone != null">manage_phone = #{managePhone},</if>

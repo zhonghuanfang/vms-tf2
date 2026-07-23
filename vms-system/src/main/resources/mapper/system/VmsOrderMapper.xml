@@ -21,8 +21,9 @@
         <result property="claimRemark"    column="claim_remark"    />
         <result property="attachUrl"    column="attach_url"    />
         <result property="orderStatus"    column="order_status"    />
+        <result property="branchOrgId"    column="branch_org_id"    />
     </resultMap>
-    <sql id="selectVmsOrderVo">select oid, batch_no, template_oid, voucher_name, vendor_oid, vendor_name, quantity, price, spec, amount, express_no, express_time, actual_claim_qty, claim_start_no, claim_end_no, claim_status, claim_remark, attach_url, order_status from vms_order</sql>
+    <sql id="selectVmsOrderVo">select oid, batch_no, template_oid, voucher_name, vendor_oid, vendor_name, quantity, price, spec, amount, express_no, express_time, actual_claim_qty, claim_start_no, claim_end_no, claim_status, claim_remark, attach_url, order_status, branch_org_id from vms_order</sql>
     <select id="selectVmsOrderList" parameterType="VmsOrder" resultMap="VmsOrderResult">
         <include refid="selectVmsOrderVo"/><where>
             <if test="batchNo != null and batchNo != ''"> and batch_no = #{batchNo}</if>
@@ -43,6 +44,7 @@
             <if test="claimRemark != null and claimRemark != ''"> and claim_remark = #{claimRemark}</if>
             <if test="attachUrl != null and attachUrl != ''"> and attach_url = #{attachUrl}</if>
             <if test="orderStatus != null and orderStatus != ''"> and order_status = #{orderStatus}</if>
+            <if test="branchOrgId != null and branchOrgId != ''"> and branch_org_id = #{branchOrgId}</if>
         </where>
     </select>
     <select id="selectVmsOrderByOid" parameterType="Long" resultMap="VmsOrderResult">
@@ -68,6 +70,7 @@
             <if test="claimRemark != null">claim_remark,</if>
             <if test="attachUrl != null">attach_url,</if>
             <if test="orderStatus != null">order_status,</if>
+            <if test="branchOrgId != null">branch_org_id,</if>
         </trim><trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="batchNo != null">#{batchNo},</if>
             <if test="templateOid != null">#{templateOid},</if>
@@ -87,6 +90,7 @@
             <if test="claimRemark != null">#{claimRemark},</if>
             <if test="attachUrl != null">#{attachUrl},</if>
             <if test="orderStatus != null">#{orderStatus},</if>
+            <if test="branchOrgId != null">#{branchOrgId},</if>
         </trim>
     </insert>
     <update id="updateVmsOrder" parameterType="VmsOrder">
@@ -109,6 +113,7 @@
             <if test="claimRemark != null">claim_remark = #{claimRemark},</if>
             <if test="attachUrl != null">attach_url = #{attachUrl},</if>
             <if test="orderStatus != null">order_status = #{orderStatus},</if>
+            <if test="branchOrgId != null">branch_org_id = #{branchOrgId},</if>
         </trim> where oid = #{oid}
     </update>
     <delete id="deleteVmsOrderByOid" parameterType="Long">delete from vms_order where oid = #{oid}</delete>

@@ -55,9 +55,9 @@ public class VmsVoucherTemplate extends BaseEntity
     @Excel(name = "税率%")
     private BigDecimal taxRate;
 
-    /** 厂商ID */
-    @Excel(name = "厂商ID")
-    private String vendorId;
+    /** 厂商oid */
+    @Excel(name = "厂商oid")
+    private Long vendorOid;
 
     /** 管理机构 */
     @Excel(name = "管理机构")
@@ -183,14 +183,14 @@ public class VmsVoucherTemplate extends BaseEntity
         return taxRate;
     }
 
-    public void setVendorId(String vendorId)
+    public void setVendorOid(Long vendorOid)
     {
-        this.vendorId = vendorId;
+        this.vendorOid = vendorOid;
     }
 
-    public String getVendorId()
+    public Long getVendorOid()
     {
-        return vendorId;
+        return vendorOid;
     }
 
     public void setManageOrg(String manageOrg)
@@ -266,7 +266,7 @@ public class VmsVoucherTemplate extends BaseEntity
                 .append("spec", getSpec())
                 .append("unit", getUnit())
                 .append("taxRate", getTaxRate())
-                .append("vendorId", getVendorId())
+                .append("vendorOid", getVendorOid())
                 .append("manageOrg", getManageOrg())
                 .append("managePerson", getManagePerson())
                 .append("managePhone", getManagePhone())

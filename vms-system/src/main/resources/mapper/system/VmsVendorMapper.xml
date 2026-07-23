@@ -6,7 +6,6 @@
 
     <resultMap type="VmsVendor" id="VmsVendorResult">
         <result property="oid"    column="oid"    />
-        <result property="vendorId"    column="vendor_id"    />
         <result property="vendorName"    column="vendor_name"    />
         <result property="vendorAddress"    column="vendor_address"    />
         <result property="contactName"    column="contact_name"    />
@@ -23,13 +22,12 @@
     </resultMap>
 
     <sql id="selectVmsVendorVo">
-        select oid, vendor_id, vendor_name, vendor_address, contact_name, contact_phone, contact_id_card, bank_account, bank_name, create_by, create_time, update_by, update_time, remark, status from vms_vendor
+        select oid, vendor_name, vendor_address, contact_name, contact_phone, contact_id_card, bank_account, bank_name, create_by, create_time, update_by, update_time, remark, status from vms_vendor
     </sql>
 
     <select id="selectVmsVendorList" parameterType="VmsVendor" resultMap="VmsVendorResult">
         <include refid="selectVmsVendorVo"/>
         <where>
-            <if test="vendorId != null  and vendorId != ''"> and vendor_id = #{vendorId}</if>
             <if test="vendorName != null  and vendorName != ''"> and vendor_name like concat('%', #{vendorName}, '%')</if>
             <if test="vendorAddress != null  and vendorAddress != ''"> and vendor_address = #{vendorAddress}</if>
             <if test="contactName != null  and contactName != ''"> and contact_name like concat('%', #{contactName}, '%')</if>
@@ -49,7 +47,6 @@
     <insert id="insertVmsVendor" parameterType="VmsVendor" useGeneratedKeys="true" keyProperty="oid">
         insert into vms_vendor
         <trim prefix="(" suffix=")" suffixOverrides=",">
-            <if test="vendorId != null and vendorId != ''">vendor_id,</if>
             <if test="vendorName != null and vendorName != ''">vendor_name,</if>
             <if test="vendorAddress != null">vendor_address,</if>
             <if test="contactName != null">contact_name,</if>
@@ -65,7 +62,6 @@
             <if test="status != null">status,</if>
         </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
-            <if test="vendorId != null and vendorId != ''">#{vendorId},</if>
             <if test="vendorName != null and vendorName != ''">#{vendorName},</if>
             <if test="vendorAddress != null">#{vendorAddress},</if>
             <if test="contactName != null">#{contactName},</if>
@@ -85,7 +81,6 @@
     <update id="updateVmsVendor" parameterType="VmsVendor">
         update vms_vendor
         <trim prefix="SET" suffixOverrides=",">
-            <if test="vendorId != null and vendorId != ''">vendor_id = #{vendorId},</if>
             <if test="vendorName != null and vendorName != ''">vendor_name = #{vendorName},</if>
             <if test="vendorAddress != null">vendor_address = #{vendorAddress},</if>
             <if test="contactName != null">contact_name = #{contactName},</if>

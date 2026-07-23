@@ -67,6 +67,9 @@ public class VmsOrder extends BaseEntity
     @Excel(name = "订单状态")
     private String orderStatus;
 
+    @Excel(name = "分行号")
+    private String branchOrgId;
+
 
     public void setOid(Long oid) { this.oid = oid; }
     public Long getOid() { return oid; }
@@ -125,6 +128,9 @@ public class VmsOrder extends BaseEntity
     public void setOrderStatus(String orderStatus) { this.orderStatus = orderStatus; }
     public String getOrderStatus() { return orderStatus; }
 
+    public void setBranchOrgId(String branchOrgId) { this.branchOrgId = branchOrgId; }
+    public String getBranchOrgId() { return branchOrgId; }
+
     @Override
     public String toString() {
         return new org.apache.commons.lang3.builder.ToStringBuilder(this,org.apache.commons.lang3.builder.ToStringStyle.MULTI_LINE_STYLE)
@@ -147,6 +153,7 @@ public class VmsOrder extends BaseEntity
                 .append("claimRemark", getClaimRemark())
                 .append("attachUrl", getAttachUrl())
                 .append("orderStatus", getOrderStatus())
+                .append("branchOrgId", getBranchOrgId())
                 .toString();
     }
 }

@@ -125,11 +125,63 @@
         <el-button @click="cancel">取 消</el-button>
       </div>
     </el-dialog>
+
+    <!-- 提交审核弹窗 -->
+    <el-dialog title="填写号段并提交审核" :visible.sync="submitReviewOpen" width="1100px" append-to-body>
+      <el-table v-loading="submitReviewLoading" :data="submitReviewList" border>
+        <el-table-column label="凭证类别" align="center" prop="category" width="100" />
+        <el-table-column label="凭证名称" align="center" prop="templateName" width="150" />
+        <el-table-column label="凭证代码" align="center" prop="templateCode" width="120" />
+        <el-table-column label="印制厂商" align="center" prop="vendorName" width="150" />
+        <el-table-column label="规格" align="center" prop="spec" width="80" />
+        <el-table-column label="单价" align="center" prop="price" width="80" />
+        <el-table-column label="汇总数量" align="center" prop="totalQuantity" width="100" />
+        <el-table-column label="总价" align="center" prop="totalAmount" width="100" />
+        <el-table-column label="开始号段" align="center" width="160">
+          <template slot-scope="scope">
+            <el-input v-model="scope.row.printStartNo" size="small" placeholder="请输入开始号段" />
+          </template>
+        </el-table-column>
+        <el-table-column label="结束号段" align="center" width="160">
+          <template slot-scope="scope">
+            <el-input v-model="scope.row.printEndNo" size="small" placeholder="请输入结束号段" />
+          </template>
+        </el-table-column>
+      </el-table>
+      <div slot="footer" class="dialog-footer">
+        <el-button type="primary" @click="confirmSubmitReview">确 认</el-button>
+        <el-button @click="submitReviewOpen = false">取 消</el-button>
+      </div>
+    </el-dialog>
+
+    <!-- 审核弹窗 -->
+    <el-dialog title="批次审核" :visible.sync="reviewOpen" width="1100px" append-to-body>
+      <el-table v-loading="reviewLoading" :data="reviewList" border>
+        <el-table-column label="凭证类别" align="center" prop="category" width="100" />
+        <el-table-column label="凭证名称" align="center" prop="templateName" width="150" />
+        <el-table-column label="凭证代码" align="center" prop="templateCode" width="120" />
+        <el-table-column label="印制厂商" align="center" prop="vendorName" width="150" />
+        <el-table-column label="规格" align="center" prop="spec" width="80" />
+        <el-table-column label="单价" align="center" prop="price" width="80" />
+        <el-table-column label="数量" align="center" prop="quantity" width="100" />
+        <el-table-column label="总价" align="center" prop="totalAmount" width="100" />
+        <el-table-column label="印制号段" align="center">
+          <template slot-scope="scope">
+            {{ scope.row.printStartNo }} - {{ scope.row.printEndNo }}
+          </template>
+        </el-table-column>
+      </el-table>
+      <div slot="footer" class="dialog-footer">
+        <el-button type="success" @click="handleApproveConfirm">通过</el-button>
+        <el-button type="danger" @click="handleRejectConfirm">驳回</el-button>
+        <el-button @click="reviewOpen = false">取消</el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
 <script>
-import { listBatch, getBatch, addBatch, updateBatch, delBatch, lockBatch, unlockBatch, submitReviewBatch, approveBatch, rejectBatch, branchLockBatch, branchUnlockBatch, branchSubmitReviewBatch } from "@/api/order/batch"
+import { listBatch, getBatch, addBatch, updateBatch, delBatch, lockBatch, unlockBatch, submitReviewWithSegments, approveBatch, rejectBatch, getReviewSegments, branchLockBatch, branchUnlockBatch, branchSubmitReviewBatch, batchSummary, suggestStartNos } from "@/api/order/batch"
 
 export default {
   name: "Batch",
@@ -157,7 +209,15 @@ export default {
         batchName: [
           { required: true, message: "批次名称不能为空", trigger: "blur" }
         ]
-      }
+      },
+      submitReviewOpen: false,
+      submitReviewLoading: false,
+      submitReviewBatch: null,
+      submitReviewList: [],
+      reviewOpen: false,
+      reviewLoading: false,
+      reviewBatch: null,
+      reviewList: []
     }
   },
   created() {
@@ -269,31 +329,105 @@ export default {
         this.getList()
       }).catch(() => {})
     },
-    // 提交审核
+    // 提交审核 - 打开弹窗加载汇总列表
     handleSubmitReview(row) {
-      this.$modal.confirm('确认提交审核批次 "' + row.batchName + '"？').then(() => {
-        return submitReviewBatch({ oid: row.oid })
-      }).then(() => {
-        this.$modal.msgSuccess("提交成功")
-        this.getList()
-      }).catch(() => {})
+      this.submitReviewBatch = row
+      this.submitReviewLoading = true
+      this.submitReviewOpen = true
+      this.submitReviewList = []
+      // 并行加载汇总数据和号段建议
+      Promise.all([
+        batchSummary({ batchNo: row.batchNo, status: row.status }),
+        suggestStartNos(row.batchNo)
+      ]).then(([summaryRes, suggestRes]) => {
+        const list = summaryRes.data || []
+        const suggestMap = suggestRes.data || {}
+        this.submitReviewList = list.map(item => {
+          // 根据 templateOid 获取建议开始号段
+          const suggestedStart = suggestMap[String(item.templateOid)] || ''
+          return {
+            ...item,
+            printStartNo: suggestedStart,
+            printEndNo: ''
+          }
+        })
+        this.submitReviewLoading = false
+      }).catch(() => {
+        this.submitReviewLoading = false
+      })
     },
-    // 审核
+    // 确认提交审核
+    confirmSubmitReview() {
+      // 前端校验：所有号段都填写完毕
+      for (let i = 0; i < this.submitReviewList.length; i++) {
+        const row = this.submitReviewList[i]
+        if (!row.printStartNo || !row.printEndNo) {
+          this.$modal.msgError('第' + (i + 1) + '行号段未填写完毕')
+          return
+        }
+        const startNo = Number(row.printStartNo)
+        const endNo = Number(row.printEndNo)
+        if (isNaN(startNo) || isNaN(endNo)) {
+          this.$modal.msgError('第' + (i + 1) + '行号段必须为数字')
+          return
+        }
+        // 号段相减等于订购数量
+        if (endNo - startNo !== row.totalQuantity) {
+          this.$modal.msgError('第' + (i + 1) + '行号段差值（' + (endNo - startNo) + '）不等于订购数量（' + row.totalQuantity + '）')
+          return
+        }
+      }
+      const data = {
+        oid: this.submitReviewBatch.oid,
+        segments: this.submitReviewList.map(item => ({
+          templateOid: item.templateOid,
+          vendorOid: item.vendorOid,
+          printStartNo: item.printStartNo,
+          printEndNo: item.printEndNo,
+          totalQuantity: item.totalQuantity,
+          spec: item.spec,
+          price: item.price,
+          totalAmount: item.totalAmount
+        }))
+      }
+      submitReviewWithSegments(data).then(() => {
+        this.$modal.msgSuccess('提交成功')
+        this.submitReviewOpen = false
+        this.getList()
+      })
+    },
+    // 审核 - 打开弹窗加载号段列表
     handleApprove(row) {
-      this.$prompt('请输入审核意见', '审核', { confirmButtonText: '通过', cancelButtonText: '驳回', inputType: 'textarea' }).then(({ value }) => {
-        approveBatch({ oid: row.oid, statusRemark: value }).then(() => {
-          this.$modal.msgSuccess("审核通过")
+      this.reviewBatch = row
+      this.reviewLoading = true
+      this.reviewOpen = true
+      this.reviewList = []
+      getReviewSegments(row.batchNo).then(response => {
+        this.reviewList = response.data || []
+        this.reviewLoading = false
+      }).catch(() => {
+        this.reviewLoading = false
+      })
+    },
+    // 审核通过
+    handleApproveConfirm() {
+      this.$prompt('请输入审核意见', '审核通过', { confirmButtonText: '确定', cancelButtonText: '取消', inputType: 'textarea' }).then(({ value }) => {
+        approveBatch({ oid: this.reviewBatch.oid, statusRemark: value }).then(() => {
+          this.$modal.msgSuccess('审核通过')
+          this.reviewOpen = false
           this.getList()
         })
-      }).catch(() => {
-        // 点击驳回
-        this.$prompt('请输入驳回原因', '驳回', { confirmButtonText: '确定', cancelButtonText: '取消', inputType: 'textarea' }).then(({ value }) => {
-          rejectBatch({ oid: row.oid, statusRemark: value }).then(() => {
-            this.$modal.msgSuccess("已驳回")
-            this.getList()
-          })
-        }).catch(() => {})
-      })
+      }).catch(() => {})
+    },
+    // 审核驳回
+    handleRejectConfirm() {
+      this.$prompt('请输入驳回原因', '审核驳回', { confirmButtonText: '确定', cancelButtonText: '取消', inputType: 'textarea' }).then(({ value }) => {
+        rejectBatch({ oid: this.reviewBatch.oid, statusRemark: value }).then(() => {
+          this.$modal.msgSuccess('已驳回')
+          this.reviewOpen = false
+          this.getList()
+        })
+      }).catch(() => {})
     },
     // 订购明细
     handleOrderSummary(row) {

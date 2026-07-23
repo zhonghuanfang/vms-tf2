@@ -131,7 +131,7 @@
             SUM(d.quantity) as totalQuantity, SUM(d.total_amount) as totalAmount, d.branch_org_id as branchOrgId
         from vms_batch_detail d
         left join vms_voucher_template t on d.template_oid = t.oid
-        left join vms_vendor v on t.vendor_id = v.vendor_id
+        left join vms_vendor v on t.vendor_oid = v.oid
         <where>
             <if test="batchNo != null and batchNo != ''"> and d.batch_no = #{batchNo}</if>
             <if test="branchOrgId != null and branchOrgId != ''"> and d.branch_org_id = #{branchOrgId}</if>
@@ -145,7 +145,7 @@
             SUM(d.quantity) as totalQuantity, SUM(d.total_amount) as totalAmount, d.branch_org_id as branchOrgId
         from vms_batch_detail d
         left join vms_voucher_template t on d.template_oid = t.oid
-        left join vms_vendor v on t.vendor_id = v.vendor_id
+        left join vms_vendor v on t.vendor_oid = v.oid
         <where>
             <if test="batchNo != null and batchNo != ''"> and d.batch_no = #{batchNo}</if>
             and d.branch_org_id in (
@@ -164,5 +164,21 @@
             and d.detail_status = '00'
         </where>
         group by d.template_oid, t.category, t.template_name, t.template_code, v.vendor_name, t.spec, t.price, d.branch_org_id
+    </select>
+    <!-- 审核通过时按凭证种类+分行汇总生成订单，仅汇总机构状态为"总行复核员审核中"(22)的分行 -->
+    <select id="selectOrderSummaryForApprove" parameterType="String" resultType="cn.tf.vms.system.domain.VmsOrder">
+        select d.template_oid as templateOid, t.template_name as voucherName,
+            t.vendor_oid as vendorOid, v.vendor_name as vendorName,
+            t.spec, t.price,
+            SUM(d.quantity) as quantity, SUM(d.total_amount) as amount,
+            d.branch_org_id as branchOrgId
+        from vms_batch_detail d
+        left join vms_voucher_template t on d.template_oid = t.oid
+        left join vms_vendor v on t.vendor_oid = v.oid
+        left join vms_batch_org_status os on d.branch_org_id = os.org_id and os.batch_no = d.batch_no
+        where d.batch_no = #{batchNo}
+            and d.detail_status = '00'
+            and os.detail_status = '22'
+        group by d.template_oid, t.template_name, t.vendor_oid, v.vendor_name, t.spec, t.price, d.branch_org_id
     </select>
 </mapper>

@@ -9,6 +9,7 @@ import cn.tf.vms.system.domain.VmsBatchDetail;
 import cn.tf.vms.system.service.IVmsBatchDetailService;
 
 import cn.tf.vms.system.domain.VmsBatchSummaryVo;
+import cn.tf.vms.system.domain.VmsOrder;
 @Service
 public class VmsBatchDetailServiceImpl implements IVmsBatchDetailService
 {
@@ -27,4 +28,5 @@ public class VmsBatchDetailServiceImpl implements IVmsBatchDetailService
     @Override public int deleteVmsBatchDetailByOid(Long oid) { return vmsBatchDetailMapper.deleteVmsBatchDetailByOid(oid); }
     @Override public int updateDetailWithVersionCheck(VmsBatchDetail vmsBatchDetail) { vmsBatchDetail.setUpdateTime(DateUtils.getNowDate()); return vmsBatchDetailMapper.updateDetailWithVersionCheck(vmsBatchDetail); }
     @Override public int deleteDetailWithVersionCheck(VmsBatchDetail vmsBatchDetail) { return vmsBatchDetailMapper.deleteDetailWithVersionCheck(vmsBatchDetail); }
+    @Override public List<VmsOrder> selectOrderSummaryForApprove(String batchNo) { return vmsBatchDetailMapper.selectOrderSummaryForApprove(batchNo); }
 }
