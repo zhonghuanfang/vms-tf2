@@ -254,8 +254,8 @@ public class VmsBatchController extends BaseController {
             } catch (NumberFormatException e) {
                 return this.error("第" + (i + 1) + "行号段格式错误，必须为数字");
             }
-            if (endNo - startNo != quantity) {
-                return this.error("第" + (i + 1) + "行号段差值（" + (endNo - startNo) + "）不等于订购数量（" + quantity + "）");
+            if (endNo - startNo + 1 != quantity) {
+                return this.error("第" + (i + 1) + "行号段数量（" + (endNo - startNo + 1) + "）不等于订购数量（" + quantity + "）");
             }
             VmsBatchOrderSegment segment = new VmsBatchOrderSegment();
             segment.setBatchNo(batch.getBatchNo());
@@ -383,11 +383,13 @@ public class VmsBatchController extends BaseController {
         }
         String username = SecurityUtils.getUsername();
         String batchNo = batch.getBatchNo();
-        // 1. 批次表状态改为"总行复核员退回"(23)
+        // 1. 删除当前批次号段表数据
+        this.vmsBatchOrderSegmentService.deleteByBatchNo(batchNo);
+        // 2. 批次表状态改为"总行复核员退回"(23)
         batch.setStatus("23");
         batch.setStatusRemark(vmsBatch.getStatusRemark());
         this.vmsBatchService.updateVmsBatch(batch);
-        // 2. 日志流程表新增一条数据
+        // 3. 日志流程表新增一条数据
         VmsBusinessLog log = new VmsBusinessLog();
         log.setBatchNo(batchNo);
         log.setActionType("REJECT");
@@ -396,7 +398,7 @@ public class VmsBatchController extends BaseController {
         log.setOperatorName(username);
         log.setOperatorOrgId(batch.getHeadOrgId());
         this.vmsBusinessLogService.insertVmsBusinessLog(log);
-        // 3. 批次机构状态表：将总行下分行状态为"总行复核员审核中"(22)的改为"总行复核员退回"(23)
+        // 4. 批次机构状态表：将总行下分行状态为"总行复核员审核中"(22)的改为"总行复核员退回"(23)
         VmsBatchOrgStatus branchQuery = new VmsBatchOrgStatus();
         branchQuery.setBatchNo(batchNo);
         List<VmsBatchOrgStatus> allBranchRecords = this.vmsBatchOrgStatusService.selectVmsBatchOrgStatusList(branchQuery);

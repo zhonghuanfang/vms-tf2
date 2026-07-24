@@ -1,10 +1,10 @@
 <template>
   <div class="app-container">
     <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="68px">
-      <el-form-item label="模版ID" prop="templateId">
+      <el-form-item label="模版编号" prop="templateCode">
         <el-input
-          v-model="queryParams.templateId"
-          placeholder="请输入模版ID"
+          v-model="queryParams.templateCode"
+          placeholder="请输入模版编号"
           clearable
           @keyup.enter.native="handleQuery"
         />
@@ -17,93 +17,19 @@
           @keyup.enter.native="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="模版编号" prop="templateCode">
-        <el-input
-          v-model="queryParams.templateCode"
-          placeholder="请输入模版编号"
+      <el-form-item label="凭证类型" prop="templateType">
+        <el-select
+          v-model="queryParams.templateType"
+          placeholder="请选择凭证类型"
           clearable
-          @keyup.enter.native="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="凭证类别: 一般/重空" prop="category">
-        <el-input
-          v-model="queryParams.category"
-          placeholder="请输入凭证类别: 一般/重空"
-          clearable
-          @keyup.enter.native="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="单价" prop="price">
-        <el-input
-          v-model="queryParams.price"
-          placeholder="请输入单价"
-          clearable
-          @keyup.enter.native="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="规格" prop="spec">
-        <el-input
-          v-model="queryParams.spec"
-          placeholder="请输入规格"
-          clearable
-          @keyup.enter.native="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="单位" prop="unit">
-        <el-input
-          v-model="queryParams.unit"
-          placeholder="请输入单位"
-          clearable
-          @keyup.enter.native="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="税率%" prop="taxRate">
-        <el-input
-          v-model="queryParams.taxRate"
-          placeholder="请输入税率%"
-          clearable
-          @keyup.enter.native="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="厂商oid" prop="vendorOid">
-        <el-input
-          v-model="queryParams.vendorOid"
-          placeholder="请输入厂商oid"
-          clearable
-          @keyup.enter.native="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="管理机构" prop="manageOrg">
-        <el-input
-          v-model="queryParams.manageOrg"
-          placeholder="请输入管理机构"
-          clearable
-          @keyup.enter.native="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="管理人" prop="managePerson">
-        <el-input
-          v-model="queryParams.managePerson"
-          placeholder="请输入管理人"
-          clearable
-          @keyup.enter.native="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="管理人联系方式" prop="managePhone">
-        <el-input
-          v-model="queryParams.managePhone"
-          placeholder="请输入管理人联系方式"
-          clearable
-          @keyup.enter.native="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="版本" prop="version">
-        <el-input
-          v-model="queryParams.version"
-          placeholder="请输入版本"
-          clearable
-          @keyup.enter.native="handleQuery"
-        />
+        >
+          <el-option
+            v-for="dict in dict.type.sys_template_type"
+            :key="dict.value"
+            :label="dict.label"
+            :value="dict.value"
+          />
+        </el-select>
       </el-form-item>
       <el-form-item>
         <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
@@ -159,10 +85,8 @@
 
     <el-table v-loading="loading" :data="templateList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="oid" align="center" prop="oid" />
-      <el-table-column label="模版ID" align="center" prop="templateId" />
-      <el-table-column label="模版名称" align="center" prop="templateName" />
       <el-table-column label="模版编号" align="center" prop="templateCode" />
+      <el-table-column label="模版名称" align="center" prop="templateName" />
       <el-table-column label="模版类型" align="center" prop="templateType" />
       <el-table-column label="凭证类别: 一般/重空" align="center" prop="category" />
       <el-table-column label="单价" align="center" prop="price" />
@@ -310,6 +234,7 @@ import TemplateViewDrawer from "./view"
 export default {
   name: "Template",
   components: { TemplateViewDrawer },
+  dicts: ['sys_template_type'],
   data() {
     return {
       // 遮罩层
@@ -334,22 +259,9 @@ export default {
       queryParams: {
         pageNum: 1,
         pageSize: 10,
-        templateId: null,
-        templateName: null,
         templateCode: null,
-        templateType: null,
-        category: null,
-        price: null,
-        spec: null,
-        unit: null,
-        taxRate: null,
-        vendorOid: null,
-        manageOrg: null,
-        managePerson: null,
-        managePhone: null,
-        version: null,
-        fsipUrl: null,
-        status: null
+        templateName: null,
+        templateType: null
       },
       // 表单参数
       form: {},

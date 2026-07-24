@@ -384,9 +384,9 @@ export default {
           this.$modal.msgError('第' + (i + 1) + '行号段必须为数字')
           return
         }
-        // 号段相减等于订购数量
-        if (endNo - startNo !== row.totalQuantity) {
-          this.$modal.msgError('第' + (i + 1) + '行号段差值（' + (endNo - startNo) + '）不等于订购数量（' + row.totalQuantity + '）')
+        // 号段相减加1等于订购数量
+        if (endNo - startNo + 1 !== row.totalQuantity) {
+          this.$modal.msgError('第' + (i + 1) + '行号段数量（' + (endNo - startNo + 1) + '）不等于订购数量（' + row.totalQuantity + '）')
           return
         }
       }

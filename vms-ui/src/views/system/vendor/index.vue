@@ -1,14 +1,6 @@
 <template>
   <div class="app-container">
     <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="68px">
-      <el-form-item label="厂商ID" prop="vendorId">
-        <el-input
-          v-model="queryParams.vendorId"
-          placeholder="请输入厂商ID"
-          clearable
-          @keyup.enter.native="handleQuery"
-        />
-      </el-form-item>
       <el-form-item label="厂商名称" prop="vendorName">
         <el-input
           v-model="queryParams.vendorName"
@@ -33,30 +25,7 @@
           @keyup.enter.native="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="联系人身份证号" prop="contactIdCard">
-        <el-input
-          v-model="queryParams.contactIdCard"
-          placeholder="请输入联系人身份证号"
-          clearable
-          @keyup.enter.native="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="收款账号" prop="bankAccount">
-        <el-input
-          v-model="queryParams.bankAccount"
-          placeholder="请输入收款账号"
-          clearable
-          @keyup.enter.native="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="开户行" prop="bankName">
-        <el-input
-          v-model="queryParams.bankName"
-          placeholder="请输入开户行"
-          clearable
-          @keyup.enter.native="handleQuery"
-        />
-      </el-form-item>
+
       <el-form-item>
         <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
         <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
@@ -111,8 +80,7 @@
 
     <el-table v-loading="loading" :data="vendorList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="${comment}" align="center" prop="oid" />
-      <el-table-column label="厂商ID" align="center" prop="vendorId" />
+      <el-table-column label="厂商ID" align="center" prop="oid" />
       <el-table-column label="厂商名称" align="center" prop="vendorName" />
       <el-table-column label="厂商地址" align="center" prop="vendorAddress" />
       <el-table-column label="联系人姓名" align="center" prop="contactName" />
@@ -249,15 +217,9 @@ export default {
       queryParams: {
         pageNum: 1,
         pageSize: 10,
-        vendorId: null,
         vendorName: null,
-        vendorAddress: null,
         contactName: null,
-        contactPhone: null,
-        contactIdCard: null,
-        bankAccount: null,
-        bankName: null,
-        status: null
+        contactPhone: null
       },
       // 表单参数
       form: {},

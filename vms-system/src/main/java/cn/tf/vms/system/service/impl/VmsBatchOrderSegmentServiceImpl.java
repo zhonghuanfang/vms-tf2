@@ -24,4 +24,5 @@ public class VmsBatchOrderSegmentServiceImpl implements IVmsBatchOrderSegmentSer
     @Override public List<VmsBatchReviewVo> selectReviewSegments(String batchNo) { return vmsBatchOrderSegmentMapper.selectReviewSegments(batchNo); }
     @Override public List<VmsBatchOrderSegment> selectCurrentBatchSegments(String batchNo) { return vmsBatchOrderSegmentMapper.selectCurrentBatchSegments(batchNo); }
     @Override public List<VmsBatchOrderSegment> selectLastBatchEndNos(String batchNo) { return vmsBatchOrderSegmentMapper.selectLastBatchEndNos(batchNo); }
+    @Override public int deleteByBatchNo(String batchNo) { return vmsBatchOrderSegmentMapper.deleteByBatchNo(batchNo); }
 }

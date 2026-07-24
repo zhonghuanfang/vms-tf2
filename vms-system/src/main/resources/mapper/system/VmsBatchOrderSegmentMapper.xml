@@ -82,6 +82,7 @@
         delete from vms_batch_order_segment where oid in
         <foreach item="oid" collection="array" open="(" separator="," close=")">#{oid}</foreach>
     </delete>
+    <delete id="deleteByBatchNo" parameterType="String">delete from vms_batch_order_segment where batch_no = #{batchNo}</delete>
     <select id="selectReviewSegments" parameterType="String" resultType="cn.tf.vms.system.domain.VmsBatchReviewVo">
         select s.template_oid as templateOid, t.category, t.template_name as templateName,
             t.template_code as templateCode, s.vendor_oid as vendorOid, v.vendor_name as vendorName,

@@ -15,4 +15,5 @@ public interface IVmsBatchOrderSegmentService
     public List<VmsBatchReviewVo> selectReviewSegments(String batchNo);
     public List<VmsBatchOrderSegment> selectCurrentBatchSegments(String batchNo);
     public List<VmsBatchOrderSegment> selectLastBatchEndNos(String batchNo);
+    public int deleteByBatchNo(String batchNo);
 }
