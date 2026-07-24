@@ -27,6 +27,11 @@
       <el-table-column label="单价" align="center" prop="price" width="100" />
       <el-table-column label="数量" align="center" prop="quantity" width="80" />
       <el-table-column label="金额" align="center" prop="amount" width="120" />
+      <el-table-column label="机构名称（机构号）" align="center" width="200">
+        <template slot-scope="scope">
+          {{ scope.row.branchOrgName ? scope.row.branchOrgName + '（' + scope.row.branchOrgId + '）' : scope.row.branchOrgId }}
+        </template>
+      </el-table-column>
       <el-table-column label="申领状态" align="center" prop="claimStatus" width="100" />
       <el-table-column label="快递单号" align="center" prop="expressNo" width="150" />
       <el-table-column label="订单状态" align="center" prop="orderStatus" width="100">

@@ -473,13 +473,11 @@ public class VmsBatchController extends BaseController {
             return this.error("当前分行机构号为空");
         }
         // 校验主批次状态：仅"待总行管理员汇总"(20)和"总行复核员退回"(23)时允许分行操作
-        VmsBatch batchQuery = new VmsBatch();
-        batchQuery.setBatchNo(param.getBatchNo());
-        List<VmsBatch> batchList = this.vmsBatchService.selectVmsBatchList(batchQuery);
-        if (batchList.isEmpty()) {
+        VmsBatch batch = this.vmsBatchService.selectVmsBatchByBatchNo(param.getBatchNo());
+        if (batch == null) {
             return this.error("批次不存在");
         }
-        String batchStatus = batchList.get(0).getStatus();
+        String batchStatus = batch.getStatus();
         if (!"20".equals(batchStatus) && !"23".equals(batchStatus)) {
             return this.error("当前批次状态不允许分行操作");
         }
@@ -787,13 +785,10 @@ public class VmsBatchController extends BaseController {
     }
 
     private AjaxResult checkBatchDetailOperateStatus(String batchNo, String branchOrgId, String subbranchOrgId, Integer orgVersion) {
-        VmsBatch batchQuery = new VmsBatch();
-        batchQuery.setBatchNo(batchNo);
-        List<VmsBatch> batchList = this.vmsBatchService.selectVmsBatchList(batchQuery);
-        if (batchList.isEmpty()) {
+        VmsBatch batch = this.vmsBatchService.selectVmsBatchByBatchNo(batchNo);
+        if (batch == null) {
             return this.error("批次不存在");
         } else {
-            VmsBatch batch = (VmsBatch)batchList.get(0);
             if (!"20".equals(batch.getStatus())) {
                 return this.error("当前批次状态不允许增删改操作");
             } else {

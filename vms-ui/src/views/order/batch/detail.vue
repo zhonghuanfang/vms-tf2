@@ -44,6 +44,11 @@
       <el-table-column label="单价" align="center" prop="price" width="100" />
       <el-table-column label="订购数量" align="center" prop="quantity" width="100" />
       <el-table-column label="总价" align="center" prop="totalAmount" width="120" />
+      <el-table-column label="机构名称（机构号）" align="center" width="200">
+        <template slot-scope="scope">
+          {{ scope.row.subbranchOrgName ? scope.row.subbranchOrgName + '（' + scope.row.subbranchOrgId + '）' : scope.row.subbranchOrgId }}
+        </template>
+      </el-table-column>
       <el-table-column label="明细状态" align="center" width="100">
         <template slot-scope="scope">
           <dict-tag :options="dict.type.batch_detail_status" :value="scope.row.detailStatus"/>

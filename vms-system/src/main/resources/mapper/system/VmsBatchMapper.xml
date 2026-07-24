@@ -31,7 +31,7 @@
     </select>
     <select id="selectVmsBatchListByOrgId" resultMap="VmsBatchResult">
         select b.oid, b.batch_no, b.batch_name, b.start_time, b.end_time, b.batch_desc,
-               s.detail_status status, b.status_remark, b.created_by, b.version, b.head_org_id
+               s.detail_status status, b.status_remark, b.created_by, s.version, b.head_org_id
         from vms_batch b
         inner join vms_batch_org_status s on b.batch_no = s.batch_no
         where s.org_id = #{orgId}
@@ -41,6 +41,9 @@
     </select>
     <select id="selectVmsBatchByOid" parameterType="Long" resultMap="VmsBatchResult">
         <include refid="selectVmsBatchVo"/> where oid = #{oid}
+    </select>
+    <select id="selectVmsBatchByBatchNo" parameterType="String" resultMap="VmsBatchResult">
+        <include refid="selectVmsBatchVo"/> where batch_no = #{batchNo} limit 1
     </select>
     <insert id="insertVmsBatch" parameterType="VmsBatch" useGeneratedKeys="true" keyProperty="oid">
         insert into vms_batch <trim prefix="(" suffix=")" suffixOverrides=",">

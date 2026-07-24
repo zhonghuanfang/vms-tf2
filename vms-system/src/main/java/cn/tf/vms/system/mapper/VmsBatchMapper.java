@@ -7,6 +7,7 @@ import org.apache.ibatis.annotations.Param;
 public interface VmsBatchMapper
 {
     public VmsBatch selectVmsBatchByOid(Long oid);
+    public VmsBatch selectVmsBatchByBatchNo(String batchNo);
     public List<VmsBatch> selectVmsBatchList(VmsBatch vmsBatch);
     public List<VmsBatch> selectVmsBatchListByOrgId(@Param("orgId") String orgId, @Param("batch") VmsBatch batch);
     public int insertVmsBatch(VmsBatch vmsBatch);

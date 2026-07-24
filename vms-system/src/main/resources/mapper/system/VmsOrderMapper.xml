@@ -22,10 +22,18 @@
         <result property="attachUrl"    column="attach_url"    />
         <result property="orderStatus"    column="order_status"    />
         <result property="branchOrgId"    column="branch_org_id"    />
+        <result property="branchOrgName"    column="branch_org_name"    />
     </resultMap>
     <sql id="selectVmsOrderVo">select oid, batch_no, template_oid, voucher_name, vendor_oid, vendor_name, quantity, price, spec, amount, express_no, express_time, actual_claim_qty, claim_start_no, claim_end_no, claim_status, claim_remark, attach_url, order_status, branch_org_id from vms_order</sql>
     <select id="selectVmsOrderList" parameterType="VmsOrder" resultMap="VmsOrderResult">
-        <include refid="selectVmsOrderVo"/><where>
+        select o.oid, o.batch_no, o.template_oid, o.voucher_name, o.vendor_oid, o.vendor_name,
+            o.quantity, o.price, o.spec, o.amount, o.express_no, o.express_time,
+            o.actual_claim_qty, o.claim_start_no, o.claim_end_no, o.claim_status,
+            o.claim_remark, o.attach_url, o.order_status, o.branch_org_id,
+            sd.dept_name as branch_org_name
+        from vms_order o
+        left join sys_dept sd on o.branch_org_id = sd.dept_code
+        <where>
             <if test="batchNo != null and batchNo != ''"> and batch_no = #{batchNo}</if>
             <if test="templateOid != null"> and template_oid = #{templateOid}</if>
             <if test="voucherName != null and voucherName != ''"> and voucher_name = #{voucherName}</if>

@@ -70,6 +70,9 @@ public class VmsOrder extends BaseEntity
     @Excel(name = "分行号")
     private String branchOrgId;
 
+    /** 非持久化字段：分行名称（关联sys_dept查询） */
+    private String branchOrgName;
+
 
     public void setOid(Long oid) { this.oid = oid; }
     public Long getOid() { return oid; }
@@ -130,6 +133,9 @@ public class VmsOrder extends BaseEntity
 
     public void setBranchOrgId(String branchOrgId) { this.branchOrgId = branchOrgId; }
     public String getBranchOrgId() { return branchOrgId; }
+
+    public void setBranchOrgName(String branchOrgName) { this.branchOrgName = branchOrgName; }
+    public String getBranchOrgName() { return branchOrgName; }
 
     @Override
     public String toString() {

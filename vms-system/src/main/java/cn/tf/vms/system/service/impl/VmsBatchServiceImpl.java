@@ -60,6 +60,11 @@ public class VmsBatchServiceImpl implements IVmsBatchService
             return new ArrayList<>();
         }
     }
+    @Override
+    public VmsBatch selectVmsBatchByBatchNo(String batchNo)
+    {
+        return vmsBatchMapper.selectVmsBatchByBatchNo(batchNo);
+    }
 
     /**
      * 从支行部门向上遍历祖先链，找到所属分行（deptLevel="2"）的机构号

@@ -61,6 +61,9 @@ public class VmsBatchDetail extends BaseEntity
     /** 非持久化字段：前端传入的批次机构状态版本号，用于乐观锁校验 */
     private Integer orgVersion;
 
+    /** 非持久化字段：支行名称（关联sys_dept查询） */
+    private String subbranchOrgName;
+
 
     public void setOid(Long oid) { this.oid = oid; }
     public Long getOid() { return oid; }
@@ -112,6 +115,9 @@ public class VmsBatchDetail extends BaseEntity
 
     public void setOrgVersion(Integer orgVersion) { this.orgVersion = orgVersion; }
     public Integer getOrgVersion() { return orgVersion; }
+
+    public void setSubbranchOrgName(String subbranchOrgName) { this.subbranchOrgName = subbranchOrgName; }
+    public String getSubbranchOrgName() { return subbranchOrgName; }
 
     @Override
     public String toString() {

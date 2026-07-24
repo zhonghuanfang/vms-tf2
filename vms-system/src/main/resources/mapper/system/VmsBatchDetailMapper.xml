@@ -18,10 +18,17 @@
         <result property="statusRemark"    column="status_remark"    />
         <result property="delFlag"    column="del_flag"    />
         <result property="version"    column="version"    />
+        <result property="subbranchOrgName"    column="subbranch_org_name"    />
     </resultMap>
     <sql id="selectVmsBatchDetailVo">select oid, batch_no, template_oid, quantity, spec, price, total_amount, subbranch_org_id, branch_org_id, head_org_id, created_by, detail_view, detail_status, status_remark, del_flag, version from vms_batch_detail</sql>
     <select id="selectVmsBatchDetailList" parameterType="VmsBatchDetail" resultMap="VmsBatchDetailResult">
-        <include refid="selectVmsBatchDetailVo"/><where>
+        select d.oid, d.batch_no, d.template_oid, d.quantity, d.spec, d.price, d.total_amount,
+            d.subbranch_org_id, d.branch_org_id, d.head_org_id, d.created_by, d.detail_view,
+            d.detail_status, d.status_remark, d.del_flag, d.version,
+            sd.dept_name as subbranch_org_name
+        from vms_batch_detail d
+        left join sys_dept sd on d.subbranch_org_id = sd.dept_code
+        <where>
             <if test="batchNo != null and batchNo != ''"> and batch_no = #{batchNo}</if>
             <if test="templateOid != null"> and template_oid = #{templateOid}</if>
             <if test="quantity != null"> and quantity = #{quantity}</if>
